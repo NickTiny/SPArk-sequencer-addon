@@ -596,20 +596,18 @@ def on_load_pre(*args):
 def on_load_post(*args):
     sync_settings = get_sync_settings()
     # Auto-setup the system for the new file if the active screen contains
-    # a Sequence Editor area defining a scene override with at least 1 scene strip.
-    for area in bpy.context.screen.areas:
-        space = area.spaces.active
-        if isinstance(space, bpy.types.SpaceSequenceEditor) and getattr(
-            space, "scene_override", False
-        ):
-            seq_editor = area.spaces.active.scene_override.sequence_editor
-            if seq_editor and any(
-                isinstance(s, bpy.types.SceneSequence) for s in seq_editor.sequences
-            ):
-                sync_settings.master_scene = area.spaces.active.scene_override
-                sync_settings.enabled = True
-                update_sync_cache_from_current_state()
-                break
+    # a Sequence Editor area defining a scene with at least 1 scene strip.
+    for window_manager in bpy.data.window_managers:
+        for window in window_manager.windows:
+            if window.scene.sequence_editor:
+                seq_editor = window.scene.sequence_editor
+                if seq_editor and any(
+                    isinstance(s, bpy.types.SceneSequence) for s in seq_editor.sequences
+                ):
+                    sync_settings.master_scene = window.scene
+                    sync_settings.enabled = True
+                    update_sync_cache_from_current_state()
+                    break
 
 
 @bpy.app.handlers.persistent
