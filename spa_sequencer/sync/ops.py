@@ -53,9 +53,17 @@ class WM_OT_timeline_sync_play_master(bpy.types.Operator):
         return get_sync_settings().master_scene is not None
 
     def execute(self, context: bpy.types.Context):
+        # TODO Improve this by using a pointer to find the main window instead
+        master_scene = get_sync_settings().master_scene
+        for window in context.window_manager.windows:
+            if window.scene == master_scene:
+                master_window = window
         # Trigger playback on master scene using context override.
-        with context.temp_override(scene=get_sync_settings().master_scene):
-            bpy.ops.screen.animation_play("INVOKE_DEFAULT")
+        with context.temp_override(
+            window=master_window,
+            scene=get_sync_settings().master_scene,
+        ):
+            bpy.ops.screen.animation_play()  # "INVOKE_DEFAULT"
         return {"FINISHED"}
 
 
