@@ -63,7 +63,7 @@ class WM_OT_timeline_sync_play_master(bpy.types.Operator):
             window=master_window,
             scene=get_sync_settings().master_scene,
         ):
-            bpy.ops.screen.animation_play()  # "INVOKE_DEFAULT"
+            bpy.ops.screen.animation_play(sync=True)
         return {"FINISHED"}
 
 
