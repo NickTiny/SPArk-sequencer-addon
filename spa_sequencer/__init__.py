@@ -14,11 +14,11 @@ from spa_sequencer import (
 
 
 bl_info = {
-    "name": "Sequencer",
-    "author": "The SPA Studios",
+    "name": "SPArk Sequencer",
+    "author": "Nick Alberelli & The SPA Studios",
     "description": "Toolset to improve the sequence workflow in Blender.",
     "blender": (3, 3, 0),
-    "version": (1, 0, 0),
+    "version": (0, 0, 2),
     "location": "",
     "warning": "",
     "category": "SPA",
