@@ -215,15 +215,13 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             # Note: the end frame must be last 'useful' frame, hence the -1.
             shot_scene.frame_end = shot_scene.frame_start + self.duration - 1
 
-        last_seq = get_last_sequence(sequences)
-        insert_frame = (
-            last_seq.frame_final_end if last_seq else context.scene.frame_start
-        )
-
         bpy.ops.sequencer.select_all(action="DESELECT")
         # Create a scene strip from the newly created scene.
         new_strip = sequences.new_scene(
-            self.naming.to_string(), shot_scene, self.channel, insert_frame
+            self.naming.to_string(),
+            shot_scene,
+            self.channel,
+            context.scene.frame_current,
         )
         new_strip.frame_final_duration = self.duration
         slip_shot_content(new_strip, frame_offset_start)
@@ -236,9 +234,6 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         context.scene.frame_end = max(
             new_strip.frame_final_end - 1, context.scene.frame_end
         )
-
-        # Move current frame to the new strip's start frame.
-        context.scene.frame_set(insert_frame)
 
         # Ensure newly created shot is visible.
         ensure_sequencer_frame_visible(context, new_strip.frame_final_end)
