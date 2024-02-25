@@ -194,12 +194,10 @@ class SEQUENCE_OT_check_obj_users_scene(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class SEQUENCE_OT_child_scene_setup_create(bpy.types.Operator):
+class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
     bl_idname = "sequence.child_scene_setup_create"
-    bl_label = "Create Child Scene Setup"
-    bl_description = (
-        "From the current scene, make a new scene either linked or duplicated"
-    )
+    bl_label = "Duplicate Strip's Scene Setup"
+    bl_description = "From the current scene, make a new scene either linked or full copy. Enables 'child scene'/'alt scene' workflows"
     bl_property = "setup_name"
     bl_options = {"UNDO"}
 
@@ -272,7 +270,7 @@ classes = (
     DOPESHEET_OT_sequence_navigate,
     SEQUENCE_OT_active_shot_camera_set,
     SEQUENCE_OT_active_shot_scene_set,
-    SEQUENCE_OT_child_scene_setup_create,
+    SEQUENCE_OT_copy_scene_strip_setup,
 )
 
 
