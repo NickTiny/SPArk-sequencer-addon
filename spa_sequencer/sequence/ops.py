@@ -194,10 +194,10 @@ class SEQUENCE_OT_check_obj_users_scene(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class SEQUENCE_OT_child_scene_setup_create(bpy.types.Operator):
+class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
     bl_idname = "sequence.child_scene_setup_create"
-    bl_label = "Create Child Scene Setup"
-    bl_description = "From the current scene, make a new scene and add a new collection"
+    bl_label = "Duplicate Strip's Scene Setup"
+    bl_description = "From the current scene, make a new scene either linked or full copy. Enables 'child scene'/'alt scene' workflows"
     bl_property = "setup_name"
     bl_options = {"UNDO"}
 
@@ -206,6 +206,21 @@ class SEQUENCE_OT_child_scene_setup_create(bpy.types.Operator):
         return get_sync_master_strip(use_cache=True)[0]
 
     setup_name: bpy.props.StringProperty(name="Name")
+    mode: bpy.props.EnumProperty(
+        name="Mode",
+        items=(
+            (
+                "FULL_COPY",
+                "Full Copy",
+                "Create a full copy of the current scene, creating an 'Alternate Scene'",
+            ),
+            (
+                "LINK_COPY",
+                "Linked Copy",
+                "Create a linked copy of the current scene, creating an 'Child Scene' (adds new collection)",
+            ),
+        ),
+    )  # type: ignore
 
     def invoke(self, context, event):
         self.setup_name = context.scene.name
@@ -213,8 +228,10 @@ class SEQUENCE_OT_child_scene_setup_create(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        col = layout.column()
-        col.prop(self, "setup_name")
+        row = layout.row()
+        row.label(text="Mode")
+        row.prop(self, "mode", expand=True)
+        layout.prop(self, "setup_name")
 
     def execute(self, context: bpy.types.Context):
         # Cancel if user provides a scene name that is already used
@@ -226,15 +243,16 @@ class SEQUENCE_OT_child_scene_setup_create(bpy.types.Operator):
         ref_scene = strip.scene
         # Create new Scene and set name
         with context.temp_override(scene=ref_scene):
-            bpy.ops.scene.new(type="LINK_COPY")
+            bpy.ops.scene.new(type=self.mode)
         new_scene = context.scene
         new_scene.name = self.setup_name
         # create pointer back to old scene
         new_scene.parent_scene = ref_scene
 
-        # Create new collection with the same name
-        new_setup_collection = bpy.data.collections.new(name=self.setup_name)
-        new_scene.collection.children.link(new_setup_collection)
+        if self.mode == "LINK_COPY":
+            # Create new collection with the same name
+            new_setup_collection = bpy.data.collections.new(name=self.setup_name)
+            new_scene.collection.children.link(new_setup_collection)
 
         # Assign new scene to current strip
         strip.scene = new_scene
@@ -252,7 +270,7 @@ classes = (
     DOPESHEET_OT_sequence_navigate,
     SEQUENCE_OT_active_shot_camera_set,
     SEQUENCE_OT_active_shot_scene_set,
-    SEQUENCE_OT_child_scene_setup_create,
+    SEQUENCE_OT_copy_scene_strip_setup,
 )
 
 
