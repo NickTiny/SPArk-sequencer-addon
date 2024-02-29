@@ -157,6 +157,12 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         max=32,
     )
 
+    after_last_strip: bpy.props.BoolProperty(
+        name="After Last Strip",
+        default=False,
+        description="Place Strip New Strip at the end of the timeline, otherwise use current frame",
+    )
+
     def validate_inputs(self, context: bpy.types.Context) -> bool:
         if self.name == "":
             self.report({"ERROR_INVALID_INPUT"}, "Name cannot be empty")
@@ -188,6 +194,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         self.layout.prop(self, "source_scene")
         self.layout.prop(self, "duration")
         self.layout.prop(self, "channel")
+        self.layout.prop(self, "after_last_strip")
 
     def execute(self, context: bpy.types.Context):
         # Validate the inputs
@@ -207,7 +214,10 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             # Use existing scene as is.
             shot_scene = source_scene
             # Get the last frame used in the source scene to initialize the new strip.
-            frame_offset_start = get_last_used_frame(sequences, source_scene)
+            if self.after_last_strip:
+                frame_offset_start = get_last_used_frame(sequences, source_scene)
+            else:
+                frame_offset_start = context.scene.frame_current - 1
         else:
             # Duplicate source scene.
             shot_scene = duplicate_scene(context, source_scene, self.name)
@@ -215,13 +225,22 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             # Note: the end frame must be last 'useful' frame, hence the -1.
             shot_scene.frame_end = shot_scene.frame_start + self.duration - 1
 
+        last_seq = get_last_sequence(sequences)
+        insert_frame = (
+            last_seq.frame_final_end if last_seq else context.scene.frame_start
+        )
+
+        frame_start = (
+            insert_frame if self.after_last_strip else context.scene.frame_current
+        )
+
         bpy.ops.sequencer.select_all(action="DESELECT")
         # Create a scene strip from the newly created scene.
         new_strip = sequences.new_scene(
             self.naming.to_string(),
             shot_scene,
             self.channel,
-            context.scene.frame_current,
+            frame_start,
         )
         new_strip.frame_final_duration = self.duration
         slip_shot_content(new_strip, frame_offset_start)
