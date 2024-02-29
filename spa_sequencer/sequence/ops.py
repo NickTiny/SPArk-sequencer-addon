@@ -241,6 +241,11 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
         # Get current strip it's scene as a reference
         strip = get_sync_master_strip(use_cache=True)[0]
         ref_scene = strip.scene
+        camera = strip.scene_camera
+
+        if camera and self.mode == "FULL_COPY":
+            camera["temp_scene_strip"] = strip.name
+
         # Create new Scene and set name
         with context.temp_override(scene=ref_scene):
             bpy.ops.scene.new(type=self.mode)
@@ -253,6 +258,15 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
             # Create new collection with the same name
             new_setup_collection = bpy.data.collections.new(name=self.setup_name)
             new_scene.collection.children.link(new_setup_collection)
+
+        if self.mode == "FULL_COPY":
+            for obj in new_scene.objects:
+                if getattr(obj, '["temp_scene_strip"]', None) == strip.name:
+                    strip.scene_camera = obj
+
+                    # Clear Property after finding duplicated camera
+                    del obj["temp_scene_strip"]
+                    del camera["temp_scene_strip"]
 
         # Assign new scene to current strip
         strip.scene = new_scene
