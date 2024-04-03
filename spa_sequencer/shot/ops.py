@@ -216,6 +216,11 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             return {"CANCELLED"}
 
         source_scene = bpy.data.scenes[self.source_scene]
+
+        if self.start_3d < source_scene.frame_start:
+            self.report({"ERROR"}, "3D Start is not in the range of source scene")
+            return {"CANCELLED"}
+
         # Create sequence editor data if needed.
         if not context.scene.sequence_editor:
             context.scene.sequence_editor_create()
