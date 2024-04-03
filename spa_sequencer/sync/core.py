@@ -107,7 +107,7 @@ class TimelineSyncSettings(bpy.types.PropertyGroup):
     active_follows_playhead: bpy.props.BoolProperty(
         name="Active Follows Playhead",
         description=("Update the active strip while scrubbing the sequencer"),
-        default=False,
+        default=True,
         update=use_preview_range_update_callback,
     )
 
