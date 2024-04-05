@@ -32,6 +32,7 @@ class SEQUENCER_PT_batch_render(bpy.types.Panel):
             col.prop(options, "render_output_scene")
             if options.render_output_scene:
                 col.prop(options, "output_render_filepath_pattern")
+                col.prop(options, "output_set_color")
         self.layout.operator("sequencer.batch_render")
 
 
