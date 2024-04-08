@@ -78,7 +78,9 @@ def ensure_sequencer_frame_visible(context: bpy.types.Context, frame: int):
 class SEQUENCER_OT_shot_new(bpy.types.Operator):
     bl_idname = "sequencer.shot_new"
     bl_label = "New Shot"
-    bl_description = "Create a new shot and append it to the timeline"
+    bl_description = (
+        "Create a new shot at the current position of the playhead on the timeline"
+    )
     bl_options = {"REGISTER", "UNDO"}
 
     template_names = []
