@@ -235,7 +235,7 @@ class StripRenderTask(BaseRenderTask):
         self.overrides.set(scene.render, "filepath", filepath)
 
     def run(self, context: bpy.types.Context, render_options: BatchRenderOptions):
-        # Ensures functions dependant on current strip/sync are updated during render 
+        # Ensures functions dependant on current strip/sync are updated during render
         get_sync_settings().last_master_strip = self.strip.name
 
         overrides = {"scene": self.scene}
@@ -494,6 +494,26 @@ class SequenceRenderTask(BaseRenderTask):
 
         # Override render settings based on media type
         file_format, file_ext = MEDIA_TYPES_FORMATS["MOVIE"]
+
+        # Ensure Render Scene uses Color Managment Profile same as Default Video Editing file
+        if render_options.output_set_color:
+            self.overrides.set(self.scene.display_settings, "display_device", "sRGB")
+
+            # The get/set can break if View Transform is set to AGX instead of Standard
+            # because looks are called like 'AgX - Low Contrast' and not 'Low Constrast'
+            # Workaround:
+            # clear look settings if set to AgX because its not intended for VSE use
+            if getattr(self.scene.view_settings, "view_transform") == "AgX":
+                setattr(self.scene.view_settings, "look", "None")
+
+            self.overrides.set(self.scene.view_settings, "look", "None")
+            self.overrides.set(self.scene.view_settings, "view_transform", "Standard")
+            self.overrides.set(self.scene.view_settings, "exposure", 0.0)
+            self.overrides.set(self.scene.view_settings, "gamma", 1.0)
+            self.overrides.set(self.scene.sequencer_colorspace_settings, "name", "sRGB")
+
+            self.overrides.set(self.scene.view_settings, "use_hdr_view", False)
+            self.overrides.set(self.scene.view_settings, "use_curve_mapping", False)
 
         # Only consider range of video media types.
         sequences = [

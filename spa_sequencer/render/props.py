@@ -96,6 +96,18 @@ class BatchRenderOptions(bpy.types.PropertyGroup):
         default=False,
         options=set(),
     )
+    output_set_color: bpy.props.BoolProperty(
+        name="Use Default Color Management",
+        description=(
+            "If enabled, temporarily override color management settings of output scene. "
+            "View Transform='Standard' and Look='None' in the sRGB Color Space. "
+            "Exposure, Gamma and Curve Mapping are also set to default values. "
+            "CAUTION: If output scene uses AgX, Look value will not be restored "
+            "to it's original value"
+        ),
+        default=False,
+        options=set(),
+    )
 
     filepath_pattern: bpy.props.StringProperty(
         name="Filepath Pattern",
