@@ -499,9 +499,13 @@ class SequenceRenderTask(BaseRenderTask):
         if render_options.output_set_color:
             self.overrides.set(self.scene.display_settings, "display_device", "sRGB")
 
-            # TODO The get/set can break if View Transform is set to AGX instead of Standard
+            # The get/set can break if View Transform is set to AGX instead of Standard
             # because looks are called like 'AgX - Low Contrast' and not 'Low Constrast'
-            # should report as bug in blender, lsat checked on hash: `e0e6dc8550f1`
+            # Workaround:
+            # clear look settings if set to AgX because its not intended for VSE use
+            if getattr(self.scene.view_settings, "view_transform") == "AgX":
+                setattr(self.scene.view_settings, "look", "None")
+
             self.overrides.set(self.scene.view_settings, "look", "None")
             self.overrides.set(self.scene.view_settings, "view_transform", "Standard")
             self.overrides.set(self.scene.view_settings, "exposure", 0.0)
