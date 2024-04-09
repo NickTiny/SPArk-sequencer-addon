@@ -185,7 +185,12 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             ):
                 self.source_scene = scene.name
 
+        # Create sequence editor data if needed.
+        if not context.scene.sequence_editor:
+            context.scene.sequence_editor_create()
+
         ref_strip = context.scene.sequence_editor.active_strip
+        source_scene = bpy.data.scenes.get(self.source_scene)
         if self.scene_mode == "EXISTING":
             if (
                 ref_strip
@@ -195,8 +200,10 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
                 self.start_3d = remap_frame_value(
                     context.scene.frame_current, ref_strip
                 )
+            elif source_scene:
+                self.start_3d = source_scene.frame_start
             else:
-                self.start_3d = bpy.data.scenes[self.source_scene].frame_start
+                self.start_3d = 1
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -222,10 +229,6 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         if self.start_3d < source_scene.frame_start:
             self.report({"ERROR"}, "3D Start is not in the range of source scene")
             return {"CANCELLED"}
-
-        # Create sequence editor data if needed.
-        if not context.scene.sequence_editor:
-            context.scene.sequence_editor_create()
 
         sequences = context.scene.sequence_editor.sequences
         frame_offset_start = 0
