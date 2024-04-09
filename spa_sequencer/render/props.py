@@ -105,7 +105,7 @@ class BatchRenderOptions(bpy.types.PropertyGroup):
             "CAUTION: If output scene uses AgX, Look value will not be restored "
             "to it's original value"
         ),
-        default=False,
+        default=True,
         options=set(),
     )
 
