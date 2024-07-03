@@ -256,7 +256,7 @@ class StripRenderTask(BaseRenderTask):
         self.overrides.set(scene.render, "use_stamp_sequencer_strip", False)
 
         self.overrides.set(scene.render, "use_stamp_note", True)
-        custom_stamp_note = f"Shot {strip.name}"
+        custom_stamp_note = f"Strip {strip.name}"
         if os.environ.get("USERNAME"):
             custom_stamp_note += f"\nArtist {os.environ.get('USERNAME')}"
         self.overrides.set(scene.render, "stamp_note_text", custom_stamp_note)
