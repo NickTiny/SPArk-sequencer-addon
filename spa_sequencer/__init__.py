@@ -18,7 +18,7 @@ bl_info = {
     "author": "Nick Alberelli & The SPA Studios",
     "description": "Toolset to improve the sequence workflow in Blender.",
     "blender": (3, 3, 0),
-    "version": (0, 0, 7),
+    "version": (0, 0, 8),
     "location": "",
     "warning": "",
     "category": "SPA",
