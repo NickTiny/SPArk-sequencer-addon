@@ -9,7 +9,9 @@ from typing import Any, Callable, Optional
 import bpy
 from spa_sequencer.render.props import MEDIA_TYPES_FORMATS, BatchRenderOptions
 from spa_sequencer.sync.core import get_sync_settings
+from spa_sequencer.preferences import get_addon_prefs
 
+import os
 
 from spa_sequencer.sync.core import remap_frame_value
 
@@ -233,6 +235,35 @@ class StripRenderTask(BaseRenderTask):
             self.overrides.set(render.ffmpeg, "constant_rate_factor", "PERC_LOSSLESS")
         # Setup final filepath
         self.overrides.set(scene.render, "filepath", filepath)
+
+        # Override Stamp/Burn-In Settings
+        if not get_addon_prefs().override_stamp_settings:
+            return
+
+        self.overrides.set(scene.render, "metadata_input", "SCENE")
+        self.overrides.set(scene.render, "use_stamp_date", True)
+        self.overrides.set(scene.render, "use_stamp_time", False)
+        self.overrides.set(scene.render, "use_stamp_render_time", False)
+        self.overrides.set(scene.render, "use_stamp_frame", True)
+        self.overrides.set(scene.render, "use_stamp_frame_range", False)
+        self.overrides.set(scene.render, "use_stamp_memory", False)
+        self.overrides.set(scene.render, "use_stamp_hostname", False)
+        self.overrides.set(scene.render, "use_stamp_camera", True)
+        self.overrides.set(scene.render, "use_stamp_lens", True)
+        self.overrides.set(scene.render, "use_stamp_scene", True)
+        self.overrides.set(scene.render, "use_stamp_marker", False)
+        self.overrides.set(scene.render, "use_stamp_filename", True)
+        self.overrides.set(scene.render, "use_stamp_sequencer_strip", False)
+
+        self.overrides.set(scene.render, "use_stamp_note", True)
+        custom_stamp_note = f"Shot {strip.name}"
+        if os.environ.get("USERNAME"):
+            custom_stamp_note += f"\nArtist {os.environ.get('USERNAME')}"
+        self.overrides.set(scene.render, "stamp_note_text", custom_stamp_note)
+
+        self.overrides.set(scene.render, "use_stamp", True)
+        self.overrides.set(scene.render, "stamp_font_size", 24)
+        self.overrides.set(scene.render, "use_stamp_labels", True)
 
     def run(self, context: bpy.types.Context, render_options: BatchRenderOptions):
         # Ensures functions dependant on current strip/sync are updated during render
