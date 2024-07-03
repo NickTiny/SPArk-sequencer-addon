@@ -19,8 +19,20 @@ class SPASequencerAddonPreferences(bpy.types.AddonPreferences):
         default="TEMPLATE_SHOT",
     )
 
+    override_stamp_settings: bpy.props.BoolProperty(
+        name="Use Custom Burn-Ins",
+        description=(
+            "Disabling this option allows the user to set custom burn-in settings "
+            "under their scene settings on a per file basis. Otherwise the Sequencer "
+            "will automatically burn in the Date, Frame, Camera, Lens, Scene, Filename "
+            "Stripname and Artist's username to all Sequencer Batch Renders"
+        ),
+        default=True,
+    )
+
     def draw(self, context):
         self.layout.prop(self, "shot_template_prefix")
+        self.layout.prop(self, "override_stamp_settings")
 
 
 def get_addon_prefs() -> SPASequencerAddonPreferences:
