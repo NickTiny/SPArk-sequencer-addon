@@ -45,6 +45,7 @@ class BatchRenderOptions(bpy.types.PropertyGroup):
         items=(
             ("BLENDER_EEVEE", "Eevee", "Eevee"),
             ("BLENDER_WORKBENCH", "Workbench", "Workbench"),
+            ("CYCLES", "Cycles", "Cycles"),
         ),
         default="BLENDER_EEVEE",
         options=set(),
