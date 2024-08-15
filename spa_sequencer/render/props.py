@@ -8,6 +8,13 @@ import bpy
 from spa_sequencer.utils import register_classes, unregister_classes
 
 
+def version_is_4_2():
+    version_number = int(bpy.app.version[0]) + (int(bpy.app.version[1] / 10))
+    return bool(version_number >= 4.2)
+
+
+BLENDER_EEVEE = "BLENDER_EEVEE_NEXT" if version_is_4_2() else "BLENDER_EEVEE"
+
 MEDIA_TYPES_FORMATS = {
     "IMAGES": ("JPEG", "jpg"),
     "MOVIE": ("QUICKTIME", "mov"),
@@ -43,11 +50,11 @@ class BatchRenderOptions(bpy.types.PropertyGroup):
         name="Engine",
         description="The render engine to use",
         items=(
-            ("BLENDER_EEVEE", "Eevee", "Eevee"),
+            (BLENDER_EEVEE, "Eevee", "Eevee"),
             ("BLENDER_WORKBENCH", "Workbench", "Workbench"),
             ("CYCLES", "Cycles", "Cycles"),
         ),
-        default="BLENDER_EEVEE",
+        default=BLENDER_EEVEE,
         options=set(),
     )
 
