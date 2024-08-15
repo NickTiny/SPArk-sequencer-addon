@@ -55,7 +55,7 @@ class IMPORT_OT_otio(bpy.types.Operator, ImportHelper):
 
         insert_frame = frame_start
 
-        for clip in track.each_child():
+        for clip in track.find_children():
             # Only consider source clips and gaps for now, skip everything else.
             if not isinstance(clip, (otio.schema.Clip, otio.schema.Gap)):
                 continue
