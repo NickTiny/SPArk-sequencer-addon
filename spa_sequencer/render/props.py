@@ -9,7 +9,7 @@ from spa_sequencer.utils import register_classes, unregister_classes
 
 
 def version_is_4_2():
-    version_number = int(bpy.app.version[0]) + (int(bpy.app.version[1] / 10))
+    version_number = int(bpy.app.version[0]) + (int(bpy.app.version[1]) / 10)
     return bool(version_number >= 4.2)
 
 
