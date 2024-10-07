@@ -236,8 +236,7 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.label(text="Mode")
-        row.prop(self, "mode", expand=True)
+        layout.prop(self, "mode", expand=False)
         layout.prop(self, "setup_name")
 
     def execute(self, context: bpy.types.Context):
