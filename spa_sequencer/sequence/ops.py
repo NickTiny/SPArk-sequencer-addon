@@ -2,7 +2,7 @@
 # Copyright (C) 2023, The SPA Studios. All rights reserved.
 
 import bpy
-
+from typing import List
 from spa_sequencer.utils import register_classes, unregister_classes
 from spa_sequencer.sync.core import (
     get_sync_master_strip,
@@ -201,6 +201,8 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
     bl_property = "setup_name"
     bl_options = {"UNDO"}
 
+    _objects_map = {}
+
     @classmethod
     def poll(cls, context: bpy.types.Context):
         return get_sync_master_strip(use_cache=True)[0]
@@ -213,6 +215,11 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
                 "FULL_COPY",
                 "Full Copy",
                 "Create a full copy of the current scene, creating an 'Alternate Scene'",
+            ),
+            (
+                "ACTION_COPY",
+                "Action Copy",
+                "Create a linked copy of static objects a 'full' copy of animated objects",
             ),
             (
                 "LINK_COPY",
@@ -248,7 +255,13 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
 
         # Create new Scene and set name
         with context.temp_override(scene=ref_scene):
-            bpy.ops.scene.new(type=self.mode)
+            # Action Copy are linked scenes to start with
+            if self.mode == "ACTION_COPY":
+                mode = "LINK_COPY"
+            else:
+                mode = self.mode
+
+            bpy.ops.scene.new(type=mode)
         new_scene = context.scene
         new_scene.name = self.setup_name
         # create pointer back to old scene
@@ -258,6 +271,9 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
             # Create new collection with the same name
             new_setup_collection = bpy.data.collections.new(name=self.setup_name)
             new_scene.collection.children.link(new_setup_collection)
+
+        if self.mode == "ACTION_COPY":
+            self.replace_action_collection_with_copy(new_scene)
 
         if self.mode == "FULL_COPY":
             for obj in new_scene.objects:
@@ -277,6 +293,127 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
             f"New scene setup '{self.setup_name}' created on strip '{strip.name}'",
         )
         return {"FINISHED"}
+
+    def replace_action_collection_with_copy(self, new_scene: bpy.types.Scene):
+
+        action_cols = set()
+
+        scene_col = new_scene.collection
+
+        # Find Action Collections to Copy
+        for collection in scene_col.children_recursive:
+
+            if self.is_action_collection(collection):
+                action_cols.add(collection)
+
+        for action_col in action_cols:
+
+            # Replace each Action Collections with a copy
+            action_col_copy = action_col.copy()
+            self.create_object_copies(action_col_copy)
+
+            # Loop over children of scene Collection
+            for top_col in scene_col.children:
+
+                # If Asset Collection is Child of Scene, replace it with copy
+                if action_col == top_col:
+                    self.copy_collection_in_place(
+                        scene_col, action_col, action_col_copy
+                    )
+
+                # Only continue if action collection exists in children of top collection
+                if action_col not in list(top_col.children_recursive):
+                    continue
+
+                # Get a list of all collections that are parents of action collection
+                col_hirarchy = self.recursively_find_collection_hirarchy(
+                    top_col, action_col, col_history=[top_col]
+                )
+
+                # Replace all collection parents with copies
+                for index, col in enumerate(col_hirarchy):
+                    if index == 0:
+                        parent_col = scene_col
+                    else:
+                        parent_col = col_hirarchy[index - 1]
+                    col_copy = col.copy()
+                    self.copy_collection_in_place(parent_col, col, col_copy)
+                    col_hirarchy.pop(index)
+                    col_hirarchy.insert(index, col_copy)
+
+                # Replace action collection with a copy
+                self.copy_collection_in_place(
+                    col_hirarchy[-1], action_col, action_col_copy
+                )
+
+        self.reaplce_objects_via_map(scene_col)
+        for col in scene_col.children_recursive:
+            self.reaplce_objects_via_map(col)
+
+    def reaplce_objects_via_map(self, collection: bpy.types.Collection):
+        for obj in collection.objects:
+            if obj not in list(self._objects_map.keys()):
+                continue
+            collection.objects.unlink(obj)
+            collection.objects.link(self._objects_map[obj])
+
+    def create_object_copies(self, collection: bpy.types.Collection):
+        for object in collection.objects:
+
+            obj_copy = object.copy()
+            self._objects_map[object] = obj_copy
+            collection.objects.unlink(object)
+            collection.objects.link(obj_copy)
+
+            if obj_copy.animation_data.action:
+                obj_copy.animation_data.action = obj_copy.animation_data.action.copy()
+
+            copied_actions = {}
+            for nla_track in obj_copy.animation_data.nla_tracks:
+                for nla_strip in nla_track.strips:
+                    if nla_strip.action not in list(copied_actions.keys()):
+                        copied_actions[nla_strip.action] = nla_strip.action.copy()
+
+                    nla_strip.action = copied_actions[nla_strip.action]
+
+    def recursively_find_collection_hirarchy(
+        self,
+        parent_col: bpy.types.Collection,
+        target_col: bpy.types.Collection,
+        col_history: List[bpy.types.Collection],
+    ):
+
+        if target_col in list(parent_col.children):
+            return col_history
+
+        for collection in parent_col.children:
+            if target_col in list(collection.children_recursive):
+                col_history.append(collection)
+
+            if target_col in list(collection.children):
+                return col_history
+
+            return self.recursively_find_collection_hirarchy(
+                collection, target_col, col_history
+            )
+
+    def is_action_collection(self, collection: bpy.types.Collection):
+        for object in collection.objects:
+            if object.animation_data:
+                return True
+        return False
+
+    def copy_collection_in_place(
+        self,
+        parent_collection: bpy.types.Collection,
+        source_col: bpy.types.Collection,
+        target_col: bpy.types.Collection,
+    ):
+
+        parent_collection.children.unlink(source_col)
+        parent_collection.children.link(target_col)
+
+        ...
 
 
 classes = (
