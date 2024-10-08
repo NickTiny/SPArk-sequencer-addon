@@ -202,6 +202,9 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
     bl_options = {"UNDO"}
 
     _objects_map = {}
+    _collection_hirarchy = {}
+    _collection_map = {}
+    _suffix = ""
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
@@ -294,56 +297,27 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
         return {"FINISHED"}
 
     def replace_action_collection_with_copy(self, new_scene: bpy.types.Scene):
-
         action_cols = set()
-
         scene_col = new_scene.collection
+        self._suffix = new_scene.name
+        # Reset Maps
+        self._objects_map = {}
+        self._collection_hirarchy = {}
+        self._collection_map = {}
 
         # Find Action Collections to Copy
         for collection in scene_col.children_recursive:
-
             if self.is_action_collection(collection):
                 action_cols.add(collection)
+                self.create_object_copies(collection)
 
-        for action_col in action_cols:
+        # for top_col in scene_col.children:
+        # Get a list of all collections that are parents of action collection
+        self.recursively_find_collection_hirarchy(
+            scene_col, action_cols, self._collection_hirarchy
+        )
 
-            # Replace each Action Collections with a copy
-            action_col_copy = action_col.copy()
-            self.create_object_copies(action_col_copy)
-
-            # Loop over children of scene Collection
-            for top_col in scene_col.children:
-
-                # If Asset Collection is Child of Scene, replace it with copy
-                if action_col == top_col:
-                    self.copy_collection_in_place(
-                        scene_col, action_col, action_col_copy
-                    )
-
-                # Only continue if action collection exists in children of top collection
-                if action_col not in list(top_col.children_recursive):
-                    continue
-
-                # Get a list of all collections that are parents of action collection
-                col_hirarchy = self.recursively_find_collection_hirarchy(
-                    top_col, action_col, col_history=[top_col]
-                )
-
-                # Replace all collection parents with copies
-                for index, col in enumerate(col_hirarchy):
-                    if index == 0:
-                        parent_col = scene_col
-                    else:
-                        parent_col = col_hirarchy[index - 1]
-                    col_copy = col.copy()
-                    self.copy_collection_in_place(parent_col, col, col_copy)
-                    col_hirarchy.pop(index)
-                    col_hirarchy.insert(index, col_copy)
-
-                # Replace action collection with a copy
-                self.copy_collection_in_place(
-                    col_hirarchy[-1], action_col, action_col_copy
-                )
+        self.recursively_copy_collection_hirarchy(scene_col, self._collection_hirarchy)
 
         self.reaplce_objects_via_map(scene_col)
         for col in scene_col.children_recursive:
@@ -351,68 +325,112 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
 
     def reaplce_objects_via_map(self, collection: bpy.types.Collection):
         for obj in collection.objects:
-            if obj not in list(self._objects_map.keys()):
+            if not self._objects_map.get(obj.name):
                 continue
+            target_obj = bpy.data.objects.get(self._objects_map[obj.name])
             collection.objects.unlink(obj)
-            collection.objects.link(self._objects_map[obj])
+            collection.objects.link(target_obj)
 
     def create_object_copies(self, collection: bpy.types.Collection):
+        copied_actions = {}
         for object in collection.objects:
 
-            obj_copy = object.copy()
-            self._objects_map[object] = obj_copy
-            collection.objects.unlink(object)
-            collection.objects.link(obj_copy)
+            if object.name in list(self._objects_map.values()):
+                continue
+
+            if not self._objects_map.get(object.name):
+                obj_copy = self.copy_datablock(object)
+                self._objects_map[object.name] = obj_copy.name
+            else:
+                obj_copy = bpy.data.objects.get(self._objects_map[object.name])
 
             if obj_copy.animation_data.action:
-                obj_copy.animation_data.action = obj_copy.animation_data.action.copy()
+                action_copy = self.copy_datablock(obj_copy.animation_data.action)
+                obj_copy.animation_data.action = action_copy
 
-            copied_actions = {}
             for nla_track in obj_copy.animation_data.nla_tracks:
                 for nla_strip in nla_track.strips:
-                    if nla_strip.action not in list(copied_actions.keys()):
-                        copied_actions[nla_strip.action] = nla_strip.action.copy()
+                    if not copied_actions.get(nla_strip.action):
+                        action_copy = self.copy_datablock(nla_strip.action)
+                        copied_actions[nla_strip.action] = action_copy
 
                     nla_strip.action = copied_actions[nla_strip.action]
+
+    def copy_datablock(self, datablock: bpy.types.ID):
+        new_name = self.get_name(datablock.name)
+        copied_datablock = datablock.copy()
+        copied_datablock.name = new_name
+        return copied_datablock
+
+    def get_name(self, basename: str):
+        return basename + "-" + self._suffix
+
+    def recursively_copy_collection_hirarchy(
+        self, scene_col: bpy.types.Scene, map: dict
+    ):
+        for parent_name, targets in map.items():
+            for target_name in targets.keys():
+                self.copy_collection_in_place(scene_col, parent_name, target_name)
+
+            self.recursively_copy_collection_hirarchy(scene_col, map[parent_name])
 
     def recursively_find_collection_hirarchy(
         self,
         parent_col: bpy.types.Collection,
-        target_col: bpy.types.Collection,
-        col_history: List[bpy.types.Collection],
+        target_cols: List[bpy.types.Collection],
+        map: dict,
     ):
 
-        if target_col in list(parent_col.children):
-            return col_history
+        for target_col in target_cols:
+            if target_col == parent_col:
+                if not map.get(parent_col.name):
+                    map[target_col.name] = {}
+
+            if target_col in list(parent_col.children):
+                if not map.get(parent_col.name):
+                    map[parent_col.name] = {}
+
+                map[parent_col.name].update({target_col.name: {}})
 
         for collection in parent_col.children:
-            if target_col in list(collection.children_recursive):
-                col_history.append(collection)
-
-            if target_col in list(collection.children):
-                return col_history
-
-            return self.recursively_find_collection_hirarchy(
-                collection, target_col, col_history
-            )
+            for target_col in target_cols:
+                if target_col in list(collection.children_recursive):
+                    if not map.get(parent_col.name):
+                        map[parent_col.name] = {}
+                    map[parent_col.name].update({collection.name: {}})
+                    self.recursively_find_collection_hirarchy(
+                        collection, target_cols, map[parent_col.name]
+                    )
 
     def is_action_collection(self, collection: bpy.types.Collection):
         for object in collection.objects:
             if object.animation_data:
+                # TODO Also if its an armature do this
                 return True
         return False
 
     def copy_collection_in_place(
-        self,
-        parent_collection: bpy.types.Collection,
-        source_col: bpy.types.Collection,
-        target_col: bpy.types.Collection,
+        self, scene_col: bpy.types.Collection, parent_name: str, source_name: str
     ):
-
-        parent_collection.children.unlink(source_col)
-        parent_collection.children.link(target_col)
+        parent_col = self.get_mapped_collection(scene_col, parent_name)
+        target_col = self.get_mapped_collection(scene_col, source_name)
+        source_col = bpy.data.collections.get(source_name)
+        parent_col.children.unlink(source_col)
+        parent_col.children.link(target_col)
 
         ...
+
+    def get_mapped_collection(self, scene_col, collection_name):
+        if collection_name == "Scene Collection":
+            return scene_col
+
+        if not self._collection_map.get(collection_name):
+            source_col = bpy.data.collections.get(collection_name)
+            target_col = self.copy_datablock(source_col)
+            self._collection_map[collection_name] = target_col.name
+            return target_col
+        else:
+            return bpy.data.collections.get(self._collection_map[collection_name])
 
 
 classes = (
