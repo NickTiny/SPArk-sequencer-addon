@@ -349,9 +349,12 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
             else:
                 obj_copy = bpy.data.objects.get(self._objects_map[object.name])
 
-            if obj_copy.animation_data.action:
-                action_copy = self.copy_datablock(obj_copy.animation_data.action)
-                obj_copy.animation_data.action = action_copy
+            obj_copy_action = obj_copy.animation_data.action
+            if obj_copy_action:
+                if not copied_actions.get(obj_copy_action):
+                    action_copy = self.copy_datablock(obj_copy_action)
+                    copied_actions[obj_copy_action] = action_copy
+                obj_copy.animation_data.action = copied_actions[obj_copy_action]
 
             for nla_track in obj_copy.animation_data.nla_tracks:
                 for nla_strip in nla_track.strips:
