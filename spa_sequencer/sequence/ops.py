@@ -335,6 +335,11 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
         copied_actions = {}
         for object in collection.objects:
 
+            # Skip non-action objects
+            if not self.is_action_object(object):
+                continue
+
+            # Skip object if it was already reaplced
             if object.name in list(self._objects_map.values()):
                 continue
 
@@ -408,6 +413,11 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
                 # TODO Also if its an armature do this
                 return True
         return False
+
+    def is_action_object(self, object: bpy.types.Object) -> bool:
+        if object.type == "ARMATURE":
+            return True
+        return bool(object.animation_data)
 
     def copy_collection_in_place(
         self, scene_col: bpy.types.Collection, parent_name: str, source_name: str
