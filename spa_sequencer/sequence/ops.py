@@ -3,6 +3,7 @@
 
 import bpy
 from typing import List
+from bpy.types import Context, Object, Collection, Event, Scene, ID
 from spa_sequencer.utils import register_classes, unregister_classes
 from spa_sequencer.sync.core import (
     get_sync_master_strip,
@@ -201,16 +202,18 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
     bl_property = "setup_name"
     bl_options = {"UNDO"}
 
-    _objects_map = {}
-    _collection_hirarchy = {}
-    _collection_map = {}
-    _suffix = ""
+    # TODO Test linked objects
+
+    _objects_map: dict = {}
+    _collection_hirarchy: dict = {}
+    _collection_map: dict = {}
+    _suffix: str = ""
 
     @classmethod
-    def poll(cls, context: bpy.types.Context):
+    def poll(cls, context: Context):
         return get_sync_master_strip(use_cache=True)[0]
 
-    setup_name: bpy.props.StringProperty(name="Name")
+    setup_name: bpy.props.StringProperty(name="Name")  # type: ignore
     mode: bpy.props.EnumProperty(
         name="Mode",
         items=(
@@ -232,17 +235,16 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
         ),
     )  # type: ignore
 
-    def invoke(self, context, event):
+    def invoke(self, context: Context, event: Event) -> set:
         self.setup_name = context.scene.name
         return context.window_manager.invoke_props_dialog(self)
 
-    def draw(self, context):
+    def draw(self, context: Context) -> None:
         layout = self.layout
-        row = layout.row()
         layout.prop(self, "mode", expand=False)
         layout.prop(self, "setup_name")
 
-    def execute(self, context: bpy.types.Context):
+    def execute(self, context: Context) -> set:
         # Cancel if user provides a scene name that is already used
         if self.setup_name in bpy.data.scenes:
             self.report({"ERROR"}, "Name already in use")
@@ -296,7 +298,7 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
         )
         return {"FINISHED"}
 
-    def replace_action_collection_with_copy(self, new_scene: bpy.types.Scene):
+    def replace_action_collection_with_copy(self, new_scene: Scene) -> None:
         action_cols = set()
         scene_col = new_scene.collection
         self._suffix = new_scene.name
@@ -323,7 +325,7 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
         for col in scene_col.children_recursive:
             self.reaplce_objects_via_map(col)
 
-    def reaplce_objects_via_map(self, collection: bpy.types.Collection):
+    def reaplce_objects_via_map(self, collection: Collection) -> None:
         for obj in collection.objects:
             if not self._objects_map.get(obj.name):
                 continue
@@ -331,7 +333,7 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
             collection.objects.unlink(obj)
             collection.objects.link(target_obj)
 
-    def create_object_copies(self, collection: bpy.types.Collection):
+    def create_object_copies(self, collection: Collection) -> None:
         copied_actions = {}
         for object in collection.objects:
 
@@ -364,18 +366,18 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
 
                     nla_strip.action = copied_actions[nla_strip.action]
 
-    def copy_datablock(self, datablock: bpy.types.ID):
+    def copy_datablock(self, datablock: ID) -> ID:
         new_name = self.get_name(datablock.name)
         copied_datablock = datablock.copy()
         copied_datablock.name = new_name
         return copied_datablock
 
-    def get_name(self, basename: str):
+    def get_name(self, basename: str) -> str:
         return basename + "-" + self._suffix
 
     def recursively_copy_collection_hirarchy(
         self, scene_col: bpy.types.Scene, map: dict
-    ):
+    ) -> None:
         for parent_name, targets in map.items():
             for target_name in targets.keys():
                 self.copy_collection_in_place(scene_col, parent_name, target_name)
@@ -387,7 +389,7 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
         parent_col: bpy.types.Collection,
         target_cols: List[bpy.types.Collection],
         map: dict,
-    ):
+    ) -> None:
 
         for target_col in target_cols:
             if target_col == parent_col:
@@ -410,30 +412,30 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
                         collection, target_cols, map[parent_col.name]
                     )
 
-    def is_action_collection(self, collection: bpy.types.Collection):
+    def is_action_collection(self, collection: Collection) -> bool:
         for object in collection.objects:
             if object.animation_data:
                 # TODO Also if its an armature do this
                 return True
         return False
 
-    def is_action_object(self, object: bpy.types.Object) -> bool:
+    def is_action_object(self, object: Object) -> bool:
         if object.type == "ARMATURE":
             return True
         return bool(object.animation_data)
 
     def copy_collection_in_place(
-        self, scene_col: bpy.types.Collection, parent_name: str, source_name: str
-    ):
+        self, scene_col: Collection, parent_name: str, source_name: str
+    ) -> None:
         parent_col = self.get_mapped_collection(scene_col, parent_name)
         target_col = self.get_mapped_collection(scene_col, source_name)
         source_col = bpy.data.collections.get(source_name)
         parent_col.children.unlink(source_col)
         parent_col.children.link(target_col)
 
-        ...
-
-    def get_mapped_collection(self, scene_col, collection_name):
+    def get_mapped_collection(
+        self, scene_col: Collection, collection_name: str
+    ) -> Collection:
         if collection_name == "Scene Collection":
             return scene_col
 
