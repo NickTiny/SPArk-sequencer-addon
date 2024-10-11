@@ -202,12 +202,12 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
     bl_property = "setup_name"
     bl_options = {"UNDO"}
 
-    # TODO Test linked objects
-
     _objects_map: dict = {}
     _collection_hirarchy: dict = {}
     _collection_map: dict = {}
+    _object_map: dict = {}
     _suffix: str = ""
+    _static_collections: set = set()
 
     @classmethod
     def poll(cls, context: Context):
@@ -261,7 +261,8 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
         with context.temp_override(scene=ref_scene):
             # Action Copy are linked scenes to start with
             if self.mode == "ACTION_COPY":
-                mode = "LINK_COPY"
+                self.create_action_copy_maps(ref_scene)
+                mode = "FULL_COPY"
             else:
                 mode = self.mode
 
@@ -277,7 +278,21 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
             new_scene.collection.children.link(new_setup_collection)
 
         if self.mode == "ACTION_COPY":
-            self.replace_action_collection_with_copy(new_scene)
+            self.check_action_copy_maps(new_scene)
+            self.recursively_find_static_collections(new_scene.collection)
+            self.recursively_replace_static_collections(new_scene.collection)
+            print(self._collection_hirarchy)
+            # TODO continue WIP from here..
+
+            # Collect a list of static cols in dict format
+            # Do full copy
+            # some how map the old to new
+            # get two dicts, source hirearcy and mapping old to new names
+            # compare them with the full copy and replace the matches from top to bottom
+            # Replace all objects not in linked or overriden collection (perserve all static objects) at root
+
+            return {"FINISHED"}
+            # self.replace_action_collection_with_copy(new_scene)
 
         if self.mode == "FULL_COPY":
             for obj in new_scene.objects:
@@ -298,8 +313,73 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
         )
         return {"FINISHED"}
 
+    def recursively_find_static_collections(self, parent_col: Collection) -> None:
+
+        for col in parent_col.children:
+            if col.library:
+                continue
+
+            if self.is_static_collection(col):
+                # Cannot collect sub collection of override library
+                if parent_col.override_library:
+                    continue
+                # GET PARENT SO WE CAN JUST SWAP SHIT
+                if not self._collection_hirarchy.get(parent_col.name):
+                    self._collection_hirarchy[parent_col.name] = []
+                self._collection_hirarchy[parent_col.name].append(col.name)
+            else:
+                self.recursively_find_static_collections(col)
+
+    def recursively_replace_static_collections(self, scene_col: Collection) -> None:
+        for parent_name, source_names in self._collection_hirarchy.items():
+            parent_col = (
+                scene_col
+                if parent_name == "Scene Collection"
+                else bpy.data.collections.get(parent_name)
+            )
+
+            for source_name in source_names:
+                source_col = bpy.data.collections.get(source_name)
+                target_col = bpy.data.collections.get(
+                    self.get_key_from_value(self._collection_map, source_name)
+                )
+                parent_col.children.unlink(source_col)
+                parent_col.children.link(target_col)
+
+    def get_key_from_value(self, map: dict, value_name: str):
+        for key, value in map.items():
+            if value == value_name:
+                return key
+
+    def check_action_copy_maps(self, scene: Scene) -> bool:
+        for key, value in self._collection_map.items():
+            found_col = bpy.data.collections.get(value)
+            if not found_col in list(scene.collection.children_recursive):
+                raise Exception("Collection mapping failed")
+            print("Found!", key, "->", value)
+
+    def create_action_copy_maps(self, scene: Scene):
+
+        # reset value tree
+        self._objects_map: dict = {}
+        self._collection_hirarchy: dict = {}
+        self._collection_map: dict = {}
+        self._object_map: dict = {}
+        self._suffix: str = ""
+
+        # Create naming maps
+        for col in scene.collection.children_recursive:
+            if col.library:
+                continue
+            self._collection_map[col.name] = get_next_name(col)
+
+            for obj in col.objects:
+                if obj.library:
+                    continue
+                self._object_map[obj.name] = get_next_name(obj)
+
     def replace_action_collection_with_copy(self, new_scene: Scene) -> None:
-        action_cols = set()
+        static_cols = set()
         scene_col = new_scene.collection
         self._suffix = new_scene.name
         # Reset Maps
@@ -309,14 +389,14 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
 
         # Find Action Collections to Copy
         for collection in scene_col.children_recursive:
-            if self.is_action_collection(collection):
-                action_cols.add(collection)
+            if not self.is_action_collection(collection):
+                static_cols.add(collection)
                 self.create_object_copies(collection)
 
         # for top_col in scene_col.children:
         # Get a list of all collections that are parents of action collection
-        self.recursively_find_collection_hirarchy(
-            scene_col, action_cols, self._collection_hirarchy
+        self.recursively_find_static_collections(
+            scene_col, static_cols, self._collection_hirarchy
         )
 
         self.recursively_copy_collection_hirarchy(scene_col, self._collection_hirarchy)
@@ -337,8 +417,8 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
         copied_actions = {}
         for object in collection.objects:
 
-            # Skip non-action objects
-            if not self.is_action_object(object):
+            # Skip action objects
+            if self.is_action_object(object):
                 continue
 
             # Skip object if it was already reaplced
@@ -384,40 +464,20 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
 
             self.recursively_copy_collection_hirarchy(scene_col, map[parent_name])
 
-    def recursively_find_collection_hirarchy(
-        self,
-        parent_col: bpy.types.Collection,
-        target_cols: List[bpy.types.Collection],
-        map: dict,
-    ) -> None:
-
-        for target_col in target_cols:
-            if target_col == parent_col:
-                if not map.get(parent_col.name):
-                    map[target_col.name] = {}
-
-            if target_col in list(parent_col.children):
-                if not map.get(parent_col.name):
-                    map[parent_col.name] = {}
-
-                map[parent_col.name].update({target_col.name: {}})
-
-        for collection in parent_col.children:
-            for target_col in target_cols:
-                if target_col in list(collection.children_recursive):
-                    if not map.get(parent_col.name):
-                        map[parent_col.name] = {}
-                    map[parent_col.name].update({collection.name: {}})
-                    self.recursively_find_collection_hirarchy(
-                        collection, target_cols, map[parent_col.name]
-                    )
-
     def is_action_collection(self, collection: Collection) -> bool:
         for object in collection.objects:
             if object.animation_data:
                 # TODO Also if its an armature do this
                 return True
         return False
+
+    def is_static_collection(self, collection: Collection) -> bool:
+        for object in collection.all_objects:
+            if object.animation_data:
+                return False
+            if object.type == "ARMATURE":
+                return False
+        return True
 
     def is_action_object(self, object: Object) -> bool:
         if object.type == "ARMATURE":
@@ -463,3 +523,34 @@ def register():
 
 def unregister():
     unregister_classes(classes)
+
+import re
+
+ID_STORE_MAP = {"OBJECT": "objects", "COLLECTION": "collections"}
+
+
+def get_next_name(datablock: bpy.types.ID):
+    basename = re.sub(r"\.\d{3}$", "", datablock.name)
+
+    used = []
+
+    id_store = getattr(bpy.data, ID_STORE_MAP[datablock.id_type])
+
+    for id_data in id_store:
+        if id_data.library:
+            continue
+
+        if basename == id_data.name:
+            used.append(0)
+
+        if basename in getattr(id_data, "name"):
+            search = re.search(r"\.(\d{3})$", id_data.name)
+            if not search:
+                continue
+            used.append(int(search.groups()[-1]))
+
+    avaliable = [int for int in range(1, max(used)) if int not in used]
+
+    new_version = max(used) + 1 if avaliable == [] else min(avaliable)
+
+    return basename + "." + f"{new_version:03}"
