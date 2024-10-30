@@ -5,8 +5,8 @@ from typing import Callable
 
 import bpy
 
-from spa_sequencer.preferences import get_addon_prefs
-from spa_sequencer.sync.core import (
+from ..preferences import get_addon_prefs
+from ..sync.core import (
     get_sync_settings,
     remap_frame_value,
 )

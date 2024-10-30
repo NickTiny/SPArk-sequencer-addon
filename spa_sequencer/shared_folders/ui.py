@@ -3,12 +3,12 @@
 
 import bpy
 
-from spa_sequencer.shared_folders.core import (
+from .core import (
     get_active_shared_folder,
     get_scene_users,
     get_shared_folders_root_collection,
 )
-from spa_sequencer.utils import register_classes, unregister_classes
+from ..utils import register_classes, unregister_classes
 
 
 class COLLECTION_UL_shared_folders(bpy.types.UIList):

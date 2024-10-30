@@ -6,19 +6,19 @@ import re
 import bpy
 
 
-from spa_sequencer.shot.naming import ShotNaming, ShotPrefix
-from spa_sequencer.shot.core import slip_shot_content
-from spa_sequencer.utils import register_classes, unregister_classes
+from ..shot.naming import ShotNaming, ShotPrefix
+from ..shot.core import slip_shot_content
+from ..utils import register_classes, unregister_classes
 
-from spa_sequencer.editorial.core import gather_strips_groups_by_regex
-from spa_sequencer.render.tasks import (
+from ..editorial.core import gather_strips_groups_by_regex
+from ..render.tasks import (
     STRIP_PROP_SOURCE_SCENE,
     STRIP_PROP_SOURCE_CAMERA,
     STRIP_PROP_SOURCE_FRAME_START,
     STRIP_PROP_SOURCE_FRAME_END,
 )
 
-from spa_sequencer.sync.core import remap_frame_value
+from ..sync.core import remap_frame_value
 
 
 def get_shot_prefix_enum(self, ctx):

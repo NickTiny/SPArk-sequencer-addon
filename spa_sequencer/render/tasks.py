@@ -7,13 +7,13 @@ import math
 import os
 from typing import Any, Callable, Optional
 import bpy
-from spa_sequencer.render.props import MEDIA_TYPES_FORMATS, BatchRenderOptions
-from spa_sequencer.sync.core import get_sync_settings
-from spa_sequencer.preferences import get_addon_prefs
+from .props import MEDIA_TYPES_FORMATS, BatchRenderOptions
+from ..sync.core import get_sync_settings
+from ..preferences import get_addon_prefs
 
 import os
 
-from spa_sequencer.sync.core import remap_frame_value
+from ..sync.core import remap_frame_value
 
 
 STRIP_PROP_SOURCE_BLENDER_FILE = "source_blender_file"

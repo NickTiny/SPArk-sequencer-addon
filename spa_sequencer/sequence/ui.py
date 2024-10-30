@@ -3,17 +3,17 @@
 
 import bpy
 
-from spa_sequencer.shot.core import (
+from ..shot.core import (
     get_scene_cameras,
     get_valid_shot_scenes,
 )
 
-from spa_sequencer.sync.core import (
+from ..sync.core import (
     get_sync_master_strip,
     get_sync_settings,
 )
 
-from spa_sequencer.utils import register_classes, unregister_classes
+from ..utils import register_classes, unregister_classes
 
 
 class DOPESHEET_PT_Sequence(bpy.types.Panel):

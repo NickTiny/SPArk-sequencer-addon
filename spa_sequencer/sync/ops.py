@@ -3,9 +3,9 @@
 
 import bpy
 
-from spa_sequencer.sync.core import get_sync_settings, sync_system_update
+from ..sync.core import get_sync_settings, sync_system_update
 
-from spa_sequencer.utils import register_classes, unregister_classes
+from ..utils import register_classes, unregister_classes
 
 
 class WM_OT_timeline_sync_toggle(bpy.types.Operator):

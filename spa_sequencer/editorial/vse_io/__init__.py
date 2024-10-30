@@ -4,7 +4,7 @@ log = logging.getLogger(__name__)
 
 # Safe import modules depending on OpenTimelineIO.
 try:
-    from spa_sequencer.editorial.vse_io import ops, ui
+    from . import ops, ui
 
     HAS_OTIO = True
 except ModuleNotFoundError:

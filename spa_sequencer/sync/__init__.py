@@ -5,7 +5,7 @@
 Timeline Synchronization package.
 """
 
-from spa_sequencer.sync import (
+from ..sync import (
     core,
     ops,
     ui,

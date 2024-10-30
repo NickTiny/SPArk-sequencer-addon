@@ -3,8 +3,8 @@
 
 import bpy
 
-from spa_sequencer.utils import register_classes, unregister_classes
-from spa_sequencer.sync.core import (
+from ..utils import register_classes, unregister_classes
+from ..sync.core import (
     get_sync_master_strip,
     get_sync_settings,
     remap_frame_value,

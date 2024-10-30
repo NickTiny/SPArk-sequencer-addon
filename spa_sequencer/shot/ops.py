@@ -4,9 +4,8 @@
 from typing import Optional
 
 import bpy
-from spa_sequencer.sync.core import get_scene_strip_at_frame
-from spa_sequencer.preferences import get_addon_prefs
-from spa_sequencer.shot.core import (
+from ..preferences import get_addon_prefs
+from .core import (
     adjust_shot_duration,
     delete_scene,
     duplicate_scene,
@@ -14,13 +13,13 @@ from spa_sequencer.shot.core import (
     rename_scene,
     slip_shot_content,
 )
-from spa_sequencer.shot.naming import shot_naming, ShotNamingProperty
-from spa_sequencer.sync.core import (
+from .naming import shot_naming, ShotNamingProperty
+from ..sync.core import (
     get_sync_master_strip,
     get_sync_settings,
     remap_frame_value,
 )
-from spa_sequencer.utils import register_classes, unregister_classes
+from ..utils import register_classes, unregister_classes
 
 
 def get_last_sequence(

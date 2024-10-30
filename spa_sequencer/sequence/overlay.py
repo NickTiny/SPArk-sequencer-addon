@@ -5,14 +5,14 @@ import bpy
 import blf
 import mathutils
 
-from spa_sequencer.sync.core import (
+from ..sync.core import (
     get_sync_master_strip,
     get_sync_settings,
     remap_frame_value,
 )
 
-from spa_sequencer.gpu_utils import Vec4f, OverlayDrawer
-from spa_sequencer.utils import register_classes, unregister_classes
+from ..gpu_utils import Vec4f, OverlayDrawer
+from ..utils import register_classes, unregister_classes
 
 
 # - Overlay UI global settings

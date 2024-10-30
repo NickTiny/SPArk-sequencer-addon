@@ -12,8 +12,7 @@ from typing import Type
 
 import bpy
 
-import spa_sequencer
-from spa_sequencer.keymaps import register_keymap
+from .keymaps import register_keymap
 
 BlenderTypeClass = Type[bpy.types.bpy_struct]
 BlenderOperatorTypeClass = Type[bpy.types.Operator]
@@ -101,7 +100,3 @@ def remove_auto_numbering_suffix(name: str) -> str:
     :return: The name without numbering suffix if any
     """
     return re.sub(r".\d{3}$", "", name)
-
-
-def get_addon_directory() -> str:
-    return os.path.dirname(spa_sequencer.__file__)

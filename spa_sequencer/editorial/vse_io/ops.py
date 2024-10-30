@@ -9,9 +9,9 @@ from bpy_extras.io_utils import ExportHelper, ImportHelper
 import opentimelineio as otio
 from opentimelineio.opentime import TimeRange, RationalTime
 
-from spa_sequencer.utils import register_classes, unregister_classes
+from ...utils import register_classes, unregister_classes
 
-from spa_sequencer.editorial.vse_io.core import (
+from .core import (
     get_media_reference_filepath,
     sequencer_add_media_func,
     strip_apply_frame_offsets,

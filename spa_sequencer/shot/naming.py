@@ -8,7 +8,7 @@ from typing import NamedTuple, Optional, Union
 
 import bpy
 
-from spa_sequencer.utils import register_classes, unregister_classes
+from ..utils import register_classes, unregister_classes
 
 
 class ShotPrefix(Enum):

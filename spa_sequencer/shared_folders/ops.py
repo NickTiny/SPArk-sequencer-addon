@@ -3,8 +3,8 @@
 
 import bpy
 
-from spa_sequencer.shared_folders import core
-from spa_sequencer.utils import register_classes, unregister_classes
+from . import core
+from ..utils import register_classes, unregister_classes
 
 
 class COLLECTION_OT_shared_folder_from_collection(bpy.types.Operator):

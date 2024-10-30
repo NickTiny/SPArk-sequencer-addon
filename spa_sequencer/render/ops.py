@@ -7,7 +7,7 @@ import traceback
 
 import bpy
 
-from spa_sequencer.render.tasks import (
+from .tasks import (
     BaseRenderTask,
     BaseTask,
     CopySoundStripsTask,
@@ -18,8 +18,8 @@ from spa_sequencer.render.tasks import (
     ValueOverrides,
 )
 
-from spa_sequencer.sync.core import get_sync_settings
-from spa_sequencer.utils import register_classes, unregister_classes
+from ..sync.core import get_sync_settings
+from ..utils import register_classes, unregister_classes
 
 
 class RenderCancelled(RuntimeError):

@@ -3,8 +3,8 @@
 
 import bpy
 
-from spa_sequencer.utils import register_classes, unregister_classes
-from spa_sequencer.editorial.vse_io import HAS_OTIO
+from ..utils import register_classes, unregister_classes
+from .vse_io import HAS_OTIO
 
 
 class SEQUENCER_MT_edit_conform(bpy.types.Menu):

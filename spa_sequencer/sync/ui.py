@@ -3,8 +3,8 @@
 
 import bpy
 
-from spa_sequencer.sync.core import get_sync_settings
-from spa_sequencer.utils import register_classes, unregister_classes
+from ..sync.core import get_sync_settings
+from ..utils import register_classes, unregister_classes
 
 
 class SEQUENCER_PT_SyncPanel(bpy.types.Panel):
