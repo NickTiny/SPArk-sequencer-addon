@@ -99,6 +99,9 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
                 case "TEMPLATE":
                     # Only show template scenes in this case.
                     return scene.name.startswith(prefix)
+                case "NEW":
+                    # No need for source scene in NEW mode
+                    return False
                 case _:
                     return True
 
@@ -123,6 +126,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         items=(
             ("EXISTING", "Use Existing", "Use existing scene"),
             ("TEMPLATE", "New From Template", "Create a new scene from a template"),
+            ("NEW", "New", "Create a new empty scene"),
         ),
         default="EXISTING",
         update=update_default_source_scene,
@@ -168,7 +172,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         if self.name == "":
             self.report({"ERROR_INVALID_INPUT"}, "Name cannot be empty")
             return False
-        if self.source_scene not in bpy.data.scenes:
+        if self.scene_mode != "NEW" and self.source_scene not in bpy.data.scenes:
             self.report({"ERROR_INVALID_INPUT"}, "Source scene cannot be empty")
             return False
         return True
@@ -203,6 +207,8 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
                 self.start_3d = source_scene.frame_start
             else:
                 self.start_3d = 1
+        elif self.scene_mode == "NEW":
+            self.start_3d = 1  # Default start frame for new scenes
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -211,7 +217,9 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         row = self.layout.row(align=True)
         self.naming.draw(row, show_init_from_next=True)
         self.layout.prop(self, "scene_mode")
-        self.layout.prop(self, "source_scene")
+        source_scene_row = self.layout.row(align=True)
+        source_scene_row.active = self.scene_mode != "NEW"
+        source_scene_row.prop(self, "source_scene")
         self.layout.prop(self, "duration")
         self.layout.prop(self, "channel")
         start_3d_row = self.layout.row(align=True)
@@ -223,9 +231,9 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         if not self.validate_inputs(context):
             return {"CANCELLED"}
 
-        source_scene = bpy.data.scenes[self.source_scene]
+        source_scene = bpy.data.scenes[self.source_scene] if self.scene_mode != "NEW" else None
 
-        if self.start_3d < source_scene.frame_start:
+        if self.scene_mode != "NEW" and self.start_3d < source_scene.frame_start:
             self.report({"ERROR"}, "3D Start is not in the range of source scene")
             return {"CANCELLED"}
 
@@ -238,6 +246,29 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             shot_scene = source_scene
             # Get the last frame used in the source scene to initialize the new strip.
             frame_offset_start = self.start_3d - shot_scene.frame_start
+        elif self.scene_mode == "NEW":
+            # Create a new empty scene
+            shot_scene = bpy.data.scenes.new(self.name)
+            
+            # Set scene's frame range
+            shot_scene.frame_start = 1
+            shot_scene.frame_end = shot_scene.frame_start + self.duration - 1
+            
+            # Create a camera for the new scene
+            for i in range(1, 100000):
+                camera_name = f"Camera_{i:03d}"
+                if camera_name not in bpy.data.objects:
+                    break
+            camera_data = bpy.data.cameras.new(name=camera_name)
+            camera_obj = bpy.data.objects.new(name=camera_name, object_data=camera_data)
+            shot_scene.collection.objects.link(camera_obj)
+            shot_scene.camera = camera_obj
+            
+            # Set a position for new camera
+            camera_obj.location = (0, -10, 2)
+            camera_obj.rotation_euler = (1.5708, 0, 0)  # 90 degrees on X axis
+            
+            frame_offset_start = 0  # No offset for a new scene
         else:
             # Duplicate source scene.
             shot_scene = duplicate_scene(context, source_scene, self.name)
