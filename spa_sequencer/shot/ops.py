@@ -23,14 +23,14 @@ from ..utils import register_classes, unregister_classes
 
 
 def get_last_sequence(
-    sequences: list[bpy.types.Sequence],
-) -> Optional[bpy.types.Sequence]:
+    sequences: list[bpy.types.Strip],
+) -> Optional[bpy.types.Strip]:
     """Get the last sequence, i.e. the one with the greatest final frame number."""
     return max(sequences, key=lambda x: x.frame_final_end) if sequences else None
 
 
 def get_last_used_frame(
-    sequences: list[bpy.types.Sequence], scene: bpy.types.Scene
+    sequences: list[bpy.types.Strip], scene: bpy.types.Scene
 ) -> int:
     """
     Get the last used internal frame of `scene` from the given list of `sequences`.
@@ -38,7 +38,7 @@ def get_last_used_frame(
     scene_sequences = [
         s
         for s in sequences
-        if isinstance(s, bpy.types.SceneSequence) and s.scene == scene
+        if isinstance(s, bpy.types.SceneStrip) and s.scene == scene
     ]
 
     if not scene_sequences:
@@ -48,13 +48,13 @@ def get_last_used_frame(
 
 
 def get_selected_scene_sequences(
-    sequences: list[bpy.types.Sequence],
-) -> list[bpy.types.SceneSequence]:
+    sequences: list[bpy.types.Strip],
+) -> list[bpy.types.SceneStrip]:
     """
     :param sequences: The sequences to consider.
     :return: The list of selected scene sequence strips.
     """
-    return [s for s in sequences if isinstance(s, bpy.types.SceneSequence) and s.select]
+    return [s for s in sequences if isinstance(s, bpy.types.SceneStrip) and s.select]
 
 
 def ensure_sequencer_frame_visible(context: bpy.types.Context, frame: int):
@@ -324,10 +324,10 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
     @staticmethod
     def duplicate_shot(
         context: bpy.types.Context,
-        strip: bpy.types.SceneSequence,
+        strip: bpy.types.SceneStrip,
         name: str,
         duplicate_scene: bool,
-    ) -> bpy.types.SceneSequence:
+    ) -> bpy.types.SceneStrip:
         sed = strip.id_data.sequence_editor
         if duplicate_scene:
             shot_scene = duplicate_scene(context, strip.scene, name)
@@ -502,12 +502,12 @@ class SEQUENCER_OT_shot_timing_adjust(bpy.types.Operator):
     @staticmethod
     def get_active_strip(
         context: bpy.types.Context,
-    ) -> Optional[bpy.types.SceneSequence]:
+    ) -> Optional[bpy.types.SceneStrip]:
         if context.area.type == "DOPESHEET_EDITOR":
             strip = get_sync_master_strip(use_cache=True)[0]
             return strip if strip and strip.scene == context.window.scene else None
         elif context.scene.sequence_editor and isinstance(
-            context.scene.sequence_editor.active_strip, bpy.types.SceneSequence
+            context.scene.sequence_editor.active_strip, bpy.types.SceneStrip
         ):
             return context.scene.sequence_editor.active_strip
 
@@ -654,11 +654,11 @@ class SEQUENCER_OT_shot_rename(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         return context.scene.sequence_editor and isinstance(
-            cls.active_shot(context), bpy.types.SceneSequence
+            cls.active_shot(context), bpy.types.SceneStrip
         )
 
     @staticmethod
-    def active_shot(context) -> bpy.types.SceneSequence:
+    def active_shot(context) -> bpy.types.SceneStrip:
         return context.scene.sequence_editor.active_strip
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
@@ -789,7 +789,7 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
         scene_strips = [
             strip
             for strip in context.scene.sequence_editor.sequences
-            if isinstance(strip, bpy.types.SceneSequence)
+            if isinstance(strip, bpy.types.SceneStrip)
         ]
 
         if not scene_strips:
@@ -798,7 +798,7 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
         tmp_suffix = ".tmp.rename"
         current_name = ""
         scenes_to_rename = set()
-        items_to_rename: dict[bpy.types.SceneSequence, tuple[str, bool]] = dict()
+        items_to_rename: dict[bpy.types.SceneStrip, tuple[str, bool]] = dict()
 
         # Go through the shots chronologically (sorted by the start frame)
         sorted_scene_strips = sorted(scene_strips, key=lambda x: x.frame_final_start)

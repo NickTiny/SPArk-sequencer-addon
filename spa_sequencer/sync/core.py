@@ -9,7 +9,7 @@ import bpy
 from ..utils import register_classes, unregister_classes
 
 
-SequenceType = Type[bpy.types.Sequence]
+SequenceType = Type[bpy.types.Strip]
 
 
 class TimelineSyncSettings(bpy.types.PropertyGroup):
@@ -158,7 +158,7 @@ def _scene_frame_set_optimized(
 scene_frame_set = _scene_frame_set_optimized
 
 
-def remap_frame_value(frame: int, scene_strip: bpy.types.SceneSequence) -> int:
+def remap_frame_value(frame: int, scene_strip: bpy.types.SceneStrip) -> int:
     """Remap `frame` in `scene_strip`'s underlying scene reference.
 
     :param frame: The frame to remap
@@ -170,10 +170,10 @@ def remap_frame_value(frame: int, scene_strip: bpy.types.SceneSequence) -> int:
 
 def get_strips_at_frame(
     frame: int,
-    strips: list[bpy.types.Sequence],
+    strips: list[bpy.types.Strip],
     type_filter: Union[SequenceType, tuple[SequenceType, ...]] = None,
     skip_muted: bool = True,
-) -> list[bpy.types.Sequence]:
+) -> list[bpy.types.Strip]:
     """
     Get all strips containing the given `frame` within their final range.
 
@@ -198,7 +198,7 @@ def get_scene_strip_at_frame(
     frame: int,
     sequence_editor: bpy.types.SequenceEditor,
     skip_muted: bool = True,
-) -> tuple[Union[bpy.types.SceneSequence, None], int]:
+) -> tuple[Union[bpy.types.SceneStrip, None], int]:
     """
     Get the scene strip at `frame` in `sequence_editor`'s strips with the highest
     channel number.
@@ -217,7 +217,7 @@ def get_scene_strip_at_frame(
         muted_channels = [idx for idx, channel in enumerate(channels) if channel.mute]
         strips = [strip for strip in strips if not strip.channel in muted_channels]
 
-    strips = get_strips_at_frame(frame, strips, bpy.types.SceneSequence, skip_muted)
+    strips = get_strips_at_frame(frame, strips, bpy.types.SceneStrip, skip_muted)
 
     if not strips:
         return None, frame
@@ -225,7 +225,7 @@ def get_scene_strip_at_frame(
     strip = sorted(strips, key=lambda x: x.channel)[-1]
 
     # Help type checking: strip can only be a SceneSequence here
-    assert isinstance(strip, bpy.types.SceneSequence)
+    assert isinstance(strip, bpy.types.SceneStrip)
 
     # Only consider scene strips with a valid scene
     if not strip.scene:
@@ -341,7 +341,7 @@ def set_gpencil_mode_safe(
 
 def get_sync_master_strip(
     use_cache: bool = False,
-) -> tuple[Union[bpy.types.SceneSequence, None], int]:
+) -> tuple[Union[bpy.types.SceneStrip, None], int]:
     """
     Return the scene strip currently used by the Timeline Synchronization.
 
@@ -364,7 +364,7 @@ def get_sync_master_strip(
     )
 
 
-def update_preview_range(scene_strip: bpy.types.SceneSequence):
+def update_preview_range(scene_strip: bpy.types.SceneStrip):
     """Update `scene_strip`'s scene preview range to match `scene_strip`'s range.
 
     :param scene_strip: The scene strip to update.
@@ -600,7 +600,7 @@ def on_load_post(*args):
         if scene.sequence_editor:
             seq_editor = scene.sequence_editor
             if seq_editor and any(
-                isinstance(s, bpy.types.SceneSequence) for s in seq_editor.sequences
+                isinstance(s, bpy.types.SceneStrip) for s in seq_editor.sequences
             ):
                 sync_settings.master_scene = scene
                 sync_settings.enabled = True

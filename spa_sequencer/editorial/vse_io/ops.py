@@ -69,7 +69,7 @@ class IMPORT_OT_otio(bpy.types.Operator, ImportHelper):
 
     def add_missing_reference_clip(
         self, name: str, frame_start: int, duration: int, channel: int
-    ) -> bpy.types.Sequence:
+    ) -> bpy.types.Strip:
         """Add a strip representing a missing media clip.
 
         :param seq_editor: Sequence editor to add the strip to.
@@ -96,7 +96,7 @@ class IMPORT_OT_otio(bpy.types.Operator, ImportHelper):
         channel: int,
         insert_frame: int,
         duration: int,
-    ) -> bpy.types.Sequence:
+    ) -> bpy.types.Strip:
         """Create a media strip from given `filepath`, based on the given OTIO `clip`.
 
         :param clip: The reference OTIO clip.
@@ -286,10 +286,10 @@ class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
         return timeline
 
     @staticmethod
-    def track_kind_from_strip(strip: bpy.types.Sequence) -> otio.schema.TrackKind:
+    def track_kind_from_strip(strip: bpy.types.Strip) -> otio.schema.TrackKind:
         """Return otio track kind based on strip type."""
         match type(strip):
-            case bpy.types.SoundSequence:
+            case bpy.types.SoundStrip:
                 return otio.schema.TrackKind.Audio
             case _:
                 return otio.schema.TrackKind.Video
@@ -299,7 +299,7 @@ class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
         timeline: otio.schema.Timeline,
         track_name: str,
         frame_start: int,
-        strips: list[bpy.types.Sequence],
+        strips: list[bpy.types.Strip],
         timeline_fps: int,
     ) -> otio.schema.Track:
         """Add a new track to `timeline` from input VSE `strips`.
@@ -361,7 +361,7 @@ class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
         return gap
 
     def add_clip(
-        self, track: otio.schema.Track, strip: bpy.types.Sequence, timeline_fps: int
+        self, track: otio.schema.Track, strip: bpy.types.Strip, timeline_fps: int
     ) -> otio.schema.Clip:
         """Add a new clip on `track` based on input `strip`.
 
@@ -374,13 +374,13 @@ class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
 
         # Retrieve filepath based on strip type.
         match type(strip):
-            case bpy.types.SoundSequence:
+            case bpy.types.SoundStrip:
                 media_filepath = strip.sound.filepath
-            case bpy.types.ImageSequence:
+            case bpy.types.ImageStrip:
                 media_filepath = os.path.join(
                     strip.directory, strip.elements[0].filename
                 )
-            case bpy.types.MovieSequence:
+            case bpy.types.MovieStrip:
                 media_filepath = strip.filepath
                 media_fps = strip.fps or timeline_fps
             case _:
@@ -424,7 +424,7 @@ class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
         return clip
 
     @staticmethod
-    def write_aaf_clip_metadata(clip: otio.schema.Clip, strip: bpy.types.Sequence):
+    def write_aaf_clip_metadata(clip: otio.schema.Clip, strip: bpy.types.Strip):
         """
         Write custom AAF metadata to `clip` to identify its source.
         This includes:

@@ -141,7 +141,7 @@ StripRenderTask callback:
  - returns:
     - path to the new media filepath
 """
-StripRenderTaskCallback = Callable[[bpy.types.SceneSequence, str], str]
+StripRenderTaskCallback = Callable[[bpy.types.SceneStrip, str], str]
 
 
 @dataclass
@@ -149,7 +149,7 @@ class StripRenderTask(BaseRenderTask):
     """Strip render task."""
 
     # The strip to render.
-    strip: Optional[bpy.types.SceneSequence] = None
+    strip: Optional[bpy.types.SceneStrip] = None
     # Viewport area.
     viewport_area: Optional[bpy.types.Area] = None
     # Window containing the viewport area.
@@ -319,7 +319,7 @@ class StripRenderTask(BaseRenderTask):
 
     def create_output_media_strip(
         self,
-        scene_strip: bpy.types.SceneSequence,
+        scene_strip: bpy.types.SceneStrip,
         scene: bpy.types.Scene,
         media_type: str,
         frames_handles: int,
@@ -333,7 +333,7 @@ class StripRenderTask(BaseRenderTask):
         sed = scene.sequence_editor
 
         # List created strips and corresponding source frame start/end in scene
-        strips: list[tuple[bpy.types.SceneSequence, int, int]] = []
+        strips: list[tuple[bpy.types.SceneStrip, int, int]] = []
 
         if media_type == "IMAGES":
             for idx in range(scene_strip.frame_final_duration):
@@ -392,7 +392,7 @@ class StripRenderTask(BaseRenderTask):
 class CopySoundStripsTask(BaseTask):
     src_scene: Optional[bpy.types.Scene] = None
     dst_scene: Optional[bpy.types.Scene] = None
-    sound_strips: list[bpy.types.SoundSequence] = field(default_factory=list)
+    sound_strips: list[bpy.types.SoundStrip] = field(default_factory=list)
 
     def run(self, context: bpy.types.Context, render_options: BatchRenderOptions):
         self.status = TaskStatus.FINISHED
@@ -488,7 +488,7 @@ class FitResolutionToContentTask(BaseTask):
         img_seqs = [
             s
             for s in self.scene.sequence_editor.sequences
-            if isinstance(s, (bpy.types.MovieSequence, bpy.types.ImageSequence))
+            if isinstance(s, (bpy.types.MovieStrip, bpy.types.ImageStrip))
         ]
 
         if not img_seqs:
@@ -550,7 +550,7 @@ class SequenceRenderTask(BaseRenderTask):
         sequences = [
             s
             for s in self.scene.sequence_editor.sequences
-            if isinstance(s, (bpy.types.MovieSequence, bpy.types.ImageSequence))
+            if isinstance(s, (bpy.types.MovieStrip, bpy.types.ImageStrip))
         ]
 
         self.scene.frame_start = min(s.frame_final_start for s in sequences)
