@@ -17,7 +17,7 @@ bl_info = {
     "name": "SPArk Sequencer",
     "author": "Nick Alberelli & The SPA Studios",
     "description": "Toolset to improve the sequence workflow in Blender.",
-    "blender": (4, 4, 0),
+    "blender": (4, 0, 0),
     "version": (0, 1, 3),
     "location": "",
     "warning": "",
