@@ -160,7 +160,7 @@ class SEQUENCE_OT_check_obj_users_scene(bpy.types.Operator):
         master_scene = get_sync_settings().master_scene
         strips = [
             strip
-            for strip in master_scene.sequence_editor.sequences_all
+            for strip in master_scene.sequence_editor.strips_all
             if strip.type == "SCENE"
         ]
 

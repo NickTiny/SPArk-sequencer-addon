@@ -319,7 +319,7 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
-        return bool(context.selected_sequences)
+        return bool(context.selected_strips)
 
     @staticmethod
     def duplicate_shot(
@@ -409,7 +409,7 @@ class SEQUENCER_OT_shot_delete(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
-        return bool(context.selected_sequences)
+        return bool(context.selected_strips)
 
     def invoke(self, context: bpy.types.Context, event):
         self.strips = get_selected_scene_sequences(
