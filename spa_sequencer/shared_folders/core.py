@@ -174,7 +174,7 @@ def get_scene_sequence_users(
     scene_users = get_scene_users(collection)
     return [
         s
-        for s in sed.sequences
+        for s in sed.strips
         if isinstance(s, bpy.types.SceneStrip) and s.scene in scene_users
     ]
 

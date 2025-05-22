@@ -78,7 +78,7 @@ class IMPORT_OT_otio(bpy.types.Operator, ImportHelper):
         :param duration: Strip duration.
         :param channel: Strip channel.
         """
-        new_strip = self.seq_editor.sequences.new_effect(
+        new_strip = self.seq_editor.strips.new_effect(
             name=name,
             type="COLOR",
             channel=channel,
@@ -268,7 +268,7 @@ class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
 
         # Build a map of strips per channels.
         tracks = {}
-        for strip in seq_editor.sequences:
+        for strip in seq_editor.strips:
             if strip.channel not in tracks:
                 tracks[strip.channel] = []
             tracks[strip.channel].append(strip)

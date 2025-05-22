@@ -54,7 +54,7 @@ class DOPESHEET_OT_sequence_navigate(bpy.types.Operator):
         # Find a strip that matches the timing
         strips = [
             s
-            for s in master_scene.sequence_editor.sequences
+            for s in master_scene.sequence_editor.strips
             if isinstance(s, bpy.types.SceneStrip) and s.scene == bpy.context.scene
         ]
 

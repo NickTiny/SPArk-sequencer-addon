@@ -223,7 +223,7 @@ class ShotNaming:
         """
         return [
             s
-            for s in sed.sequences
+            for s in sed.strips
             if isinstance(s, bpy.types.SceneStrip) and self.match_name(s.name)
         ]
 

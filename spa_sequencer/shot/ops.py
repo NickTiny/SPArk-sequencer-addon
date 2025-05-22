@@ -237,7 +237,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             self.report({"ERROR"}, "3D Start is not in the range of source scene")
             return {"CANCELLED"}
 
-        sequences = context.scene.sequence_editor.sequences
+        sequences = context.scene.sequence_editor.strips
         frame_offset_start = 0
 
         # Source scene handling.
@@ -335,10 +335,10 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
             shot_scene = strip.scene
 
         # Find the frame where to insert the duplicated strip
-        insert_frame = get_last_sequence(sed.sequences).frame_final_end
+        insert_frame = get_last_sequence(sed.strips).frame_final_end
 
         # Create new strip
-        new_strip = sed.sequences.new_scene(
+        new_strip = sed.strips.new_scene(
             name, shot_scene, strip.channel, insert_frame
         )
 
@@ -346,7 +346,7 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
 
         if not duplicate_scene:
             new_strip.scene_camera = strip.scene_camera
-            frame_offset = get_last_used_frame(sed.sequences, shot_scene)
+            frame_offset = get_last_used_frame(sed.strips, shot_scene)
             slip_shot_content(new_strip, frame_offset)
         else:
             new_strip.scene_camera = strip.scene.camera
@@ -357,7 +357,7 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
         sed = context.scene.sequence_editor
 
         new_strips = []
-        for strip in get_selected_scene_sequences(sed.sequences):
+        for strip in get_selected_scene_sequences(sed.strips):
             name = shot_naming.next_shot_name_from_sequences(sed)
             new_strip = self.duplicate_shot(context, strip, name, self.duplicate_scene)
             new_strips.append(new_strip)
@@ -413,7 +413,7 @@ class SEQUENCER_OT_shot_delete(bpy.types.Operator):
 
     def invoke(self, context: bpy.types.Context, event):
         self.strips = get_selected_scene_sequences(
-            context.scene.sequence_editor.sequences
+            context.scene.sequence_editor.strips
         )
         if not self.strips:
             self.report({"ERROR"}, "No selected shots")
@@ -442,7 +442,7 @@ class SEQUENCER_OT_shot_delete(bpy.types.Operator):
 
     def execute(self, context: bpy.types.Context):
         deleted_datablocks = 0
-        strips = get_selected_scene_sequences(context.scene.sequence_editor.sequences)
+        strips = get_selected_scene_sequences(context.scene.sequence_editor.strips)
 
         # Store scenes to delete in a set to avoid duplicates
         scenes = set()
@@ -450,7 +450,7 @@ class SEQUENCER_OT_shot_delete(bpy.types.Operator):
         for strip in strips:
             if strip.scene and self.delete_scenes:
                 scenes.add(strip.scene)
-            context.scene.sequence_editor.sequences.remove(strip)
+            context.scene.sequence_editor.strips.remove(strip)
 
         # Delete the scenes
         for scene in scenes:
@@ -701,7 +701,7 @@ class SEQUENCER_OT_shot_rename(bpy.types.Operator):
             shot_strip.name,
             current_name,
             "SEQUENCE",
-            context.scene.sequence_editor.sequences,
+            context.scene.sequence_editor.strips,
         )
 
         # Scene renaming details.
@@ -723,7 +723,7 @@ class SEQUENCER_OT_shot_rename(bpy.types.Operator):
         # Evaluate shot strip renaming.
         if new_name != shot_strip.name:
             # Ensure strip name is available.
-            if new_name in context.scene.sequence_editor.sequences:
+            if new_name in context.scene.sequence_editor.strips:
                 self.report({"ERROR"}, f"Shot '{new_name}' already exists")
                 return {"CANCELLED"}
             do_rename_strip = True
@@ -788,7 +788,7 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
     def execute(self, context: bpy.types.Context):
         scene_strips = [
             strip
-            for strip in context.scene.sequence_editor.sequences
+            for strip in context.scene.sequence_editor.strips
             if isinstance(strip, bpy.types.SceneStrip)
         ]
 

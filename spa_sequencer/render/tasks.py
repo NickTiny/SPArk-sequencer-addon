@@ -339,7 +339,7 @@ class StripRenderTask(BaseRenderTask):
             for idx in range(scene_strip.frame_final_duration):
                 frame_number = scene_strip.scene.frame_start + idx
                 img_path = scene_strip.scene.render.frame_path(frame=frame_number)
-                strip = sed.sequences.new_image(
+                strip = sed.strips.new_image(
                     name=os.path.basename(bpy.path.abspath(img_path)),
                     filepath=img_path,
                     channel=scene_strip.channel + channel_offset,
@@ -349,7 +349,7 @@ class StripRenderTask(BaseRenderTask):
 
         elif media_type == "MOVIE":
             filepath = scene_strip.scene.render.filepath
-            strip = sed.sequences.new_movie(
+            strip = sed.strips.new_movie(
                 name=os.path.basename(bpy.path.abspath(filepath)),
                 filepath=filepath,
                 channel=scene_strip.channel + channel_offset,
@@ -406,7 +406,7 @@ class CopySoundStripsTask(BaseTask):
 
         # Store original selection from source and dest scenes.
         original_selection = [
-            seq for seq in sed_src.sequences[:] + sed_dst.sequences[:] if seq.select
+            seq for seq in sed_src.strips[:] + sed_dst.strips[:] if seq.select
         ]
 
         # Select only sound strips in source scene.
@@ -487,7 +487,7 @@ class FitResolutionToContentTask(BaseTask):
 
         img_seqs = [
             s
-            for s in self.scene.sequence_editor.sequences
+            for s in self.scene.sequence_editor.strips
             if isinstance(s, (bpy.types.MovieStrip, bpy.types.ImageStrip))
         ]
 
@@ -549,7 +549,7 @@ class SequenceRenderTask(BaseRenderTask):
         # Only consider range of video media types.
         sequences = [
             s
-            for s in self.scene.sequence_editor.sequences
+            for s in self.scene.sequence_editor.strips
             if isinstance(s, (bpy.types.MovieStrip, bpy.types.ImageStrip))
         ]
 

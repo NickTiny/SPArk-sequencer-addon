@@ -94,7 +94,7 @@ class SEQUENCER_OT_edit_conform_shots_from_panels(bpy.types.Operator):
 
         # Get list of strips from reference channel.
         ref_strips = sorted(
-            [s for s in seq_editor.sequences if s.channel == self.ref_channel],
+            [s for s in seq_editor.strips if s.channel == self.ref_channel],
             key=lambda x: x.frame_final_start,
         )
 
@@ -109,7 +109,7 @@ class SEQUENCER_OT_edit_conform_shots_from_panels(bpy.types.Operator):
             shot_name = shot_naming.build_shot_name((number + 1) * 10, self.shot_prefix)
 
             # Create a new scene strip at frame start of the first ref strip in this group.
-            shot_strip = seq_editor.sequences.new_scene(
+            shot_strip = seq_editor.strips.new_scene(
                 shot_name,
                 shot_scene,
                 self.target_channel,
@@ -209,7 +209,7 @@ class SEQUENCER_OT_edit_conform_shots_from_editorial(bpy.types.Operator):
 
         shot_naming = ShotNaming()
 
-        for strip in seq_editor.sequences:
+        for strip in seq_editor.strips:
 
             if self.ref_channel != 0 and strip.channel != self.ref_channel:
                 continue
@@ -252,7 +252,7 @@ class SEQUENCER_OT_edit_conform_shots_from_editorial(bpy.types.Operator):
                 shot_name = shot_naming.next_shot_name_from_sequences(seq_editor)
 
             # Create a new scene strip using extracted information.
-            shot_strip = seq_editor.sequences.new_scene(
+            shot_strip = seq_editor.strips.new_scene(
                 shot_name, scene, self.target_channel, strip.frame_final_start
             )
             shot_strip.scene_camera = camera
