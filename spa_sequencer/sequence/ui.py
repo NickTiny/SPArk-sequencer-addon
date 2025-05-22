@@ -204,8 +204,10 @@ class VIEW3D_PT_sequence(bpy.types.Panel):
                 text="",
             )
             props.camera = context.scene.camera.name
-        row = col.row()
-        row.operator("scene.camera_select", icon="RESTRICT_SELECT_OFF", text="Select")
+        
+        # FIXME : Don't know what this unkown ops is suppose que to do
+        # row = col.row()
+        # row.operator("scene.camera_select", icon="RESTRICT_SELECT_OFF", text="Select")
 
 
 class PROPERTIES_PT_obj_users_scene_check(bpy.types.Panel):
