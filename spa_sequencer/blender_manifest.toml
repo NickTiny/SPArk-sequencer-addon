@@ -3,7 +3,7 @@ schema_version = "1.0.0"
 # Example of manifest file for a Blender extension
 # Change the values according to your extension
 id = "spa_sequencer"
-version = "0.1.2"
+version = "0.1.4"
 name = "SPArk Sequencer"
 tagline = "Toolset to improve the sequence workflow in Blender."
 maintainer = "Nick Alberelli & The SPA Studios"
