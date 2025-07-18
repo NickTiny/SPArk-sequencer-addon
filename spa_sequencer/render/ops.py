@@ -42,7 +42,8 @@ class SEQUENCER_OT_batch_render(bpy.types.Operator):
 
     RENDER_WINDOW_WIDTH = 1080
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.tasks: list[BaseTask] = []
         self.active_task: Optional[BaseTask] = None
 
