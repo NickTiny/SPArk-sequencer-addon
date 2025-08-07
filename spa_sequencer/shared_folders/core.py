@@ -165,7 +165,7 @@ def get_scene_users(collection: bpy.types.Collection) -> list[bpy.types.Scene]:
 
 def get_scene_sequence_users(
     collection: bpy.types.Collection, sed: bpy.types.SequenceEditor
-) -> list[bpy.types.SceneSequence]:
+) -> list[bpy.types.SceneStrip]:
     """Get all scene sequence strips with scenes that uses `collection`.
 
     :param collection: The shared folder.
@@ -174,8 +174,8 @@ def get_scene_sequence_users(
     scene_users = get_scene_users(collection)
     return [
         s
-        for s in sed.sequences
-        if isinstance(s, bpy.types.SceneSequence) and s.scene in scene_users
+        for s in sed.strips
+        if isinstance(s, bpy.types.SceneStrip) and s.scene in scene_users
     ]
 
 

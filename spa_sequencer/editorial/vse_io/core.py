@@ -63,17 +63,17 @@ def sequencer_add_media_func(
     match track.kind:
         case otio.schema.TrackKind.Video:
             if Path(media_filepath).suffix in bpy.path.extensions_image:
-                return seq_editor.sequences.new_image
+                return seq_editor.strips.new_image
             else:
-                return seq_editor.sequences.new_movie
+                return seq_editor.strips.new_movie
         case otio.schema.TrackKind.Audio:
-            return seq_editor.sequences.new_sound
+            return seq_editor.strips.new_sound
         case _:
             raise ValueError("Invalid track kind")
 
 
 def strip_apply_frame_offsets(
-    strip: bpy.types.Sequence,
+    strip: bpy.types.Strip,
     frame_final_start: int,
     frame_final_duration: int,
     frame_start_offset: int,

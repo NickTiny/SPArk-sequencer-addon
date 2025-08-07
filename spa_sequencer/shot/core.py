@@ -457,7 +457,7 @@ def delete_scene(scene: bpy.types.Scene, purge_orphan_datablocks: bool) -> int:
     return del_count
 
 
-def reload_strip(strip: bpy.types.Sequence):
+def reload_strip(strip: bpy.types.Strip):
     """Re-evaluate content length and update `strip` display in the sequencer."""
     # For the strip to re-evaluate its internal scene duration, we need
     # to call the sequencer.reload operator, which runs on selected strips.
@@ -466,7 +466,7 @@ def reload_strip(strip: bpy.types.Sequence):
     # Store sequence editor selection
     selected_strips = [
         (s, s.select_left_handle, s.select_right_handle)
-        for s in scene.sequence_editor.sequences
+        for s in scene.sequence_editor.strips
         if s.select
     ]
 
@@ -484,7 +484,7 @@ def reload_strip(strip: bpy.types.Sequence):
             strip.select_right_handle = right
 
 
-def adapt_scene_range(strip: bpy.types.SceneSequence):
+def adapt_scene_range(strip: bpy.types.SceneStrip):
     """Ensure `strip`'s internel range is fully contained in the scene its using."""
     # Update internal scene's end frame if exceeding the original one
     new_frame_end = remap_frame_value(strip.frame_final_end - 1, strip)
@@ -496,7 +496,7 @@ def adapt_scene_range(strip: bpy.types.SceneSequence):
 
 
 def adjust_shot_duration(
-    strip: bpy.types.SceneSequence,
+    strip: bpy.types.SceneStrip,
     frame_offset: int,
     from_frame_start: bool = False,
 ) -> bool:
@@ -543,7 +543,7 @@ def adjust_shot_duration(
     impacted_strips = sorted(
         (
             s
-            for s in sed.sequences
+            for s in sed.strips
             if s.frame_final_start > strip.frame_final_start
             and s.channel == strip.channel
         ),
@@ -595,7 +595,7 @@ def adjust_shot_duration(
 
 
 def slip_shot_content(
-    strip: bpy.types.SceneSequence, frame_offset: int, clamp_start: bool = False
+    strip: bpy.types.SceneStrip, frame_offset: int, clamp_start: bool = False
 ):
     """
     Slip `strip` content by `frame_offset`.

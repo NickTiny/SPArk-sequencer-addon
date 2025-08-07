@@ -141,7 +141,7 @@ StripRenderTask callback:
  - returns:
     - path to the new media filepath
 """
-StripRenderTaskCallback = Callable[[bpy.types.SceneSequence, str], str]
+StripRenderTaskCallback = Callable[[bpy.types.SceneStrip, str], str]
 
 
 @dataclass
@@ -149,7 +149,7 @@ class StripRenderTask(BaseRenderTask):
     """Strip render task."""
 
     # The strip to render.
-    strip: Optional[bpy.types.SceneSequence] = None
+    strip: Optional[bpy.types.SceneStrip] = None
     # Viewport area.
     viewport_area: Optional[bpy.types.Area] = None
     # Window containing the viewport area.
@@ -319,7 +319,7 @@ class StripRenderTask(BaseRenderTask):
 
     def create_output_media_strip(
         self,
-        scene_strip: bpy.types.SceneSequence,
+        scene_strip: bpy.types.SceneStrip,
         scene: bpy.types.Scene,
         media_type: str,
         frames_handles: int,
@@ -333,13 +333,13 @@ class StripRenderTask(BaseRenderTask):
         sed = scene.sequence_editor
 
         # List created strips and corresponding source frame start/end in scene
-        strips: list[tuple[bpy.types.SceneSequence, int, int]] = []
+        strips: list[tuple[bpy.types.SceneStrip, int, int]] = []
 
         if media_type == "IMAGES":
             for idx in range(scene_strip.frame_final_duration):
                 frame_number = scene_strip.scene.frame_start + idx
                 img_path = scene_strip.scene.render.frame_path(frame=frame_number)
-                strip = sed.sequences.new_image(
+                strip = sed.strips.new_image(
                     name=os.path.basename(bpy.path.abspath(img_path)),
                     filepath=img_path,
                     channel=scene_strip.channel + channel_offset,
@@ -349,7 +349,7 @@ class StripRenderTask(BaseRenderTask):
 
         elif media_type == "MOVIE":
             filepath = scene_strip.scene.render.filepath
-            strip = sed.sequences.new_movie(
+            strip = sed.strips.new_movie(
                 name=os.path.basename(bpy.path.abspath(filepath)),
                 filepath=filepath,
                 channel=scene_strip.channel + channel_offset,
@@ -392,7 +392,7 @@ class StripRenderTask(BaseRenderTask):
 class CopySoundStripsTask(BaseTask):
     src_scene: Optional[bpy.types.Scene] = None
     dst_scene: Optional[bpy.types.Scene] = None
-    sound_strips: list[bpy.types.SoundSequence] = field(default_factory=list)
+    sound_strips: list[bpy.types.SoundStrip] = field(default_factory=list)
 
     def run(self, context: bpy.types.Context, render_options: BatchRenderOptions):
         self.status = TaskStatus.FINISHED
@@ -406,7 +406,7 @@ class CopySoundStripsTask(BaseTask):
 
         # Store original selection from source and dest scenes.
         original_selection = [
-            seq for seq in sed_src.sequences[:] + sed_dst.sequences[:] if seq.select
+            seq for seq in sed_src.strips[:] + sed_dst.strips[:] if seq.select
         ]
 
         # Select only sound strips in source scene.
@@ -487,8 +487,8 @@ class FitResolutionToContentTask(BaseTask):
 
         img_seqs = [
             s
-            for s in self.scene.sequence_editor.sequences
-            if isinstance(s, (bpy.types.MovieSequence, bpy.types.ImageSequence))
+            for s in self.scene.sequence_editor.strips
+            if isinstance(s, (bpy.types.MovieStrip, bpy.types.ImageStrip))
         ]
 
         if not img_seqs:
@@ -549,8 +549,8 @@ class SequenceRenderTask(BaseRenderTask):
         # Only consider range of video media types.
         sequences = [
             s
-            for s in self.scene.sequence_editor.sequences
-            if isinstance(s, (bpy.types.MovieSequence, bpy.types.ImageSequence))
+            for s in self.scene.sequence_editor.strips
+            if isinstance(s, (bpy.types.MovieStrip, bpy.types.ImageStrip))
         ]
 
         self.scene.frame_start = min(s.frame_final_start for s in sequences)
