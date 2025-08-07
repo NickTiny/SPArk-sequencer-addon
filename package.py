@@ -55,19 +55,35 @@ def copy_directory_contents(source_dir: Path, target_dir: Path):
     for dir_path in target_dir.rglob("*"):
         if dir_path.name == "__pycache__":
             shutil.rmtree(dir_path)
+    # Remove __pycache__ directories
+    for dir_path in target_dir.rglob("*"):
+        if dir_path.name == "__pycache__":
+            shutil.rmtree(dir_path)
+
+    # Copy blender_manifest.toml
+    manifest_file = source_dir / "blender_manifest.toml"
+    shutil.copy(manifest_file, target_dir / "blender_manifest.toml")
 
 
 def get_version_number(file: Path) -> str:
-    with open(file, 'r') as f:
-        content = f.read()
+    """
+    Extracts the add-on version number from blender_manifest.toml, ignoring schema_version.
+    Expects a line like: version = "1.2.3"
+    Returns the version as "1_2_3"
+    """
+    manifest_file = file.parent / "blender_manifest.toml"
+    if not manifest_file.exists():
+        raise FileNotFoundError(f"{manifest_file} does not exist")
 
-    pattern = r".version.:+.\(([0-9]+), ([0-9]+), ([0-9])\)"
-    matches = re.search(pattern, content)
-
-    if not matches or len(matches.groups()) != 3:
-        raise ValueError(f"Could not find version number in {file}")
-
-    return f"{matches.group(1)}_{matches.group(2)}_{matches.group(3)}"
+    with open(manifest_file, 'r') as f:
+        for line in f:
+            # Only match lines that start with 'version' (not 'schema_version')
+            if re.match(r'^\s*version\s*=', line):
+                pattern = r'version\s*=\s*"(\d+)\.(\d+)\.(\d+)"'
+                matches = re.search(pattern, line)
+                if matches and len(matches.groups()) == 3:
+                    return f"{matches.group(1)}_{matches.group(2)}_{matches.group(3)}"
+    raise ValueError(f"Could not find version number in {manifest_file}")
 
 
 if __name__ == "__main__":
