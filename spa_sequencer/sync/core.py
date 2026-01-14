@@ -224,7 +224,7 @@ def get_scene_strip_at_frame(
     # Sort strips by channel
     strip = sorted(strips, key=lambda x: x.channel)[-1]
 
-    # Help type checking: strip can only be a SceneSequence here
+    # Help type checking: strip can only be a SceneStrip here
     assert isinstance(strip, bpy.types.SceneStrip)
 
     # Only consider scene strips with a valid scene

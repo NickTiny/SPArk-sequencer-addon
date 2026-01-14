@@ -8,7 +8,7 @@ import sys
 
 def create_shot_scene(
     edit_scene: bpy.types.Scene, channel: int, frame_start: int
-) -> bpy.types.SceneSequence:
+) -> bpy.types.SceneStrip:
     """
     Create a new empty scene and adds it as a strip in `edit_scene`'s sequence editor.
 
@@ -20,7 +20,7 @@ def create_shot_scene(
     # Create a new scene
     shot_scene = bpy.data.scenes.new(name="SHOT")
     # Add a scene strip in the edit scene's sequence editor
-    shot_strip = edit_scene.sequence_editor.sequences.new_scene(
+    shot_strip = edit_scene.sequence_editor.strips.new_scene(
         name=shot_scene.name,
         scene=shot_scene,
         channel=channel,

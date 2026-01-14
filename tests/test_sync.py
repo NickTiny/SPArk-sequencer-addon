@@ -11,7 +11,7 @@ from utils import create_shot_scene
 
 
 @fixture
-def basic_synced_setup() -> tuple[bpy.types.Scene, bpy.types.SceneSequence]:
+def basic_synced_setup() -> tuple[bpy.types.Scene, bpy.types.SceneStrip]:
     """
     Generate a basic setup with an edit scene and 1 shot scene of default length (250f).
     It also enables the sync system.
@@ -36,7 +36,7 @@ def basic_synced_setup() -> tuple[bpy.types.Scene, bpy.types.SceneSequence]:
 @fixture
 def complex_synced_setup(
     basic_synced_setup,
-) -> tuple[bpy.types.Scene, list[bpy.types.SceneSequence]]:
+) -> tuple[bpy.types.Scene, list[bpy.types.SceneStrip]]:
     """
     Generate a complex setup with an edit scene and 4 overlapping shots on
     different channels with a scene length of (250f).
@@ -114,7 +114,7 @@ def test_window_scene_sync(basic_synced_setup):
 
     # Moving the edit frame to the start of each strip should
     # update window's scene accordingly.
-    for strip in edit_scene.sequence_editor.sequences:
+    for strip in edit_scene.sequence_editor.strips:
         edit_scene.frame_set(strip.frame_final_start)
         assert bpy.context.window.scene == strip.scene
 
@@ -278,8 +278,8 @@ def test_camera_strip(basic_synced_setup):
     shot_scene.collection.objects.link(cam1)
     shot_scene.collection.objects.link(cam2)
 
-    # Create a new strip poiting to the same scene
-    shot_strip_2 = edit_scene.sequence_editor.sequences.new_scene(
+    # Create a new strip pointing to the same scene
+    shot_strip_2 = edit_scene.sequence_editor.strips.new_scene(
         name=f"{shot_scene.name}_2",
         scene=shot_scene,
         channel=1,

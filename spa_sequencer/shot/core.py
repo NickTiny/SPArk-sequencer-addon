@@ -470,7 +470,7 @@ def reload_strip(strip: bpy.types.Strip):
         if s.select
     ]
 
-    with bpy.context.temp_override(scene=scene):
+    with bpy.context.temp_override(scene=scene, sequencer_scene=scene):
         # Deselect everything but our strip
         bpy.ops.sequencer.select_all(action="DESELECT")
         strip.select = True
