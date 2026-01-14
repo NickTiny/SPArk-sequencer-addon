@@ -13,6 +13,7 @@ __pycache__
 # datas or personal files
 /build
 /dist
+/local
 
 # tests
 /.tests
