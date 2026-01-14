@@ -69,7 +69,7 @@ def test_scene_duplication_animation_data():
     # Check action duplication
     assert ref_action != new_action
     # Check that fcurves are preserved
-    assert len(ref_action.fcurves) == len(new_action.fcurves)
+    assert len(ref_action.layers[0].strips[0].channelbags) == len(new_action.layers[0].strips[0].channelbags)
 
 
 def test_scene_duplication_hierarchy():
