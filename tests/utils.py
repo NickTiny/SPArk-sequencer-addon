@@ -2,7 +2,9 @@
 # Copyright (C) 2023, The SPA Studios. All rights reserved.
 
 import bpy
-
+import importlib
+import addon_utils
+import sys
 
 def create_shot_scene(
     edit_scene: bpy.types.Scene, channel: int, frame_start: int
@@ -25,3 +27,13 @@ def create_shot_scene(
         frame_start=frame_start,
     )
     return shot_strip
+
+
+def get_module_name():
+    for module in addon_utils.modules():
+        if module.__name__.endswith("spa_sequencer"):
+            return module.__name__
+
+def import_spa_sequencer_module():
+    spa_sequencer = importlib.import_module(get_module_name())
+    sys.modules["spa_sequencer"] = spa_sequencer
