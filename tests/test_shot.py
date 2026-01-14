@@ -157,9 +157,9 @@ def test_scene_duplication_gp_modifier_and_effect_remapping():
     ref_scene = bpy.context.scene
 
     # Create a GP object with modifier and FX referencing an object in the scene
-    bpy.ops.object.add(type="GPENCIL")
+    bpy.ops.object.add(type="GREASEPENCIL")
     obj = bpy.context.active_object
-    mod = obj.grease_pencil_modifiers.new(name="Mirror", type="GP_MIRROR")
+    mod = obj.modifiers.new(name="Mirror", type="GREASE_PENCIL_MIRROR")
     mod.object = bpy.context.scene.camera
     fx = obj.shader_effects.new(name="Shadow", type="FX_SHADOW")
     fx.object = bpy.context.scene.camera
@@ -169,7 +169,7 @@ def test_scene_duplication_gp_modifier_and_effect_remapping():
     duplicate_scene(bpy.context, ref_scene, "SceneCopy", manifest)
 
     # Ensure GP modifier and effect's object references have been remapped
-    assert manifest[obj].grease_pencil_modifiers[0].object == manifest[mod.object]
+    assert manifest[obj].modifiers[0].object == manifest[mod.object]
     assert manifest[obj].shader_effects[0].object == manifest[fx.object]
 
 
