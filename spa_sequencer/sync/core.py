@@ -3,6 +3,7 @@
 
 from contextlib import contextmanager
 from typing import Any, Callable, Optional, Union, Type
+import ctypes
 
 import bpy
 
@@ -224,7 +225,7 @@ def get_scene_strip_at_frame(
     # Sort strips by channel
     strip = sorted(strips, key=lambda x: x.channel)[-1]
 
-    # Help type checking: strip can only be a SceneSequence here
+    # Help type checking: strip can only be a SceneStrip here
     assert isinstance(strip, bpy.types.SceneStrip)
 
     # Only consider scene strips with a valid scene
@@ -254,6 +255,10 @@ def scene_change_manager(context: bpy.types.Context):
         if not obj:
             return
         for key, value in attrs.items():
+            if key == "brush":
+                set_grease_pencil_brush(context, value)
+                continue
+                
             if getattr(obj, key, None) != value:
                 setattr(obj, key, value)
 
@@ -305,6 +310,23 @@ def scene_change_manager(context: bpy.types.Context):
             if gp_mode and gpencil.mode != gp_mode:
                 set_gpencil_mode_safe(context, gpencil, gp_mode)
 
+def set_grease_pencil_brush(context: bpy.types.Context, brush: bpy.types.Brush):
+    paint = context.tool_settings.gpencil_paint
+    
+    if not paint or not brush:
+        return False
+    
+    # Get addresses as integers
+    paint_addr = paint.as_pointer()
+    brush_addr = brush.as_pointer()
+    
+    # Convert brush address to bytes
+    brush_ptr_bytes = ctypes.c_void_p(brush_addr)
+    
+    # Copy 8 bytes (pointer size on 64-bit) from brush pointer to paint.brush location
+    ctypes.memmove(paint_addr, ctypes.addressof(brush_ptr_bytes), 8)
+    
+    return True
 
 def set_gpencil_mode_safe(
     context: bpy.types.Context, gpencil: bpy.types.Object, mode: str
@@ -327,14 +349,14 @@ def set_gpencil_mode_safe(
         # the mode flag on the gp data itself (is_stroke_{modename}_mode).
         # When that happens, switching to the mode fails.
         # If data flag for this mode is already activated, switch to the safe
-        # 'EDIT_GPENCIL' mode first as a workaround to sync back the flags.
-        if mode not in ("OBJECT", "EDIT_GPENCIL"):
+        # 'EDIT' mode first as a workaround to sync back the flags.
+        if mode not in ("OBJECT", "EDIT"):
             # Get short name for this mode to build data flag
-            # e.g: PAINT_GPENCIL => paint
+            # e.g: PAINT_GREASE_PENCIL => paint
             mode_short = mode.split("_")[0].lower()
             # Switch to edit mode first if data flags is activated
             if getattr(gpencil.data, f"is_stroke_{mode_short}_mode", False):
-                bpy.ops.object.mode_set(mode="EDIT_GPENCIL")
+                bpy.ops.object.mode_set(mode="EDIT")
         # Switch the object interaction mode
         bpy.ops.object.mode_set(mode=mode)
 

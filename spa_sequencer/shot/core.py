@@ -211,7 +211,7 @@ def remap_relations(manifest: DuplicationManifest):
         """Remap `new_object`'s modifiers properties."""
         _remap_pointer_properties(new_object.modifiers)
         if isinstance(new_object.data, bpy.types.GreasePencil):
-            _remap_pointer_properties(new_object.grease_pencil_modifiers)
+            _remap_pointer_properties(new_object.modifiers)
             _remap_pointer_properties(new_object.shader_effects)
 
     def _remap_drivers(new_datablock: bpy.types.ID):
@@ -470,7 +470,7 @@ def reload_strip(strip: bpy.types.Strip):
         if s.select
     ]
 
-    with bpy.context.temp_override(scene=scene):
+    with bpy.context.temp_override(scene=scene, sequencer_scene=scene):
         # Deselect everything but our strip
         bpy.ops.sequencer.select_all(action="DESELECT")
         strip.select = True

@@ -5,6 +5,8 @@ import pytest
 
 import bpy
 
+from utils import import_spa_sequencer_module
+import_spa_sequencer_module()
 
 @pytest.fixture()
 def addon():

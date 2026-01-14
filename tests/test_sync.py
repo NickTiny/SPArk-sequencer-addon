@@ -5,13 +5,13 @@ import bpy
 
 from pytest import fixture
 
-from spa_sequencer.sync.core import remap_frame_value, get_sync_settings
+from spa_sequencer.sync.core import remap_frame_value, get_sync_settings, set_grease_pencil_brush
 
 from utils import create_shot_scene
 
 
 @fixture
-def basic_synced_setup() -> tuple[bpy.types.Scene, bpy.types.SceneSequence]:
+def basic_synced_setup() -> tuple[bpy.types.Scene, bpy.types.SceneStrip]:
     """
     Generate a basic setup with an edit scene and 1 shot scene of default length (250f).
     It also enables the sync system.
@@ -36,7 +36,7 @@ def basic_synced_setup() -> tuple[bpy.types.Scene, bpy.types.SceneSequence]:
 @fixture
 def complex_synced_setup(
     basic_synced_setup,
-) -> tuple[bpy.types.Scene, list[bpy.types.SceneSequence]]:
+) -> tuple[bpy.types.Scene, list[bpy.types.SceneStrip]]:
     """
     Generate a complex setup with an edit scene and 4 overlapping shots on
     different channels with a scene length of (250f).
@@ -114,7 +114,7 @@ def test_window_scene_sync(basic_synced_setup):
 
     # Moving the edit frame to the start of each strip should
     # update window's scene accordingly.
-    for strip in edit_scene.sequence_editor.sequences:
+    for strip in edit_scene.sequence_editor.strips:
         edit_scene.frame_set(strip.frame_final_start)
         assert bpy.context.window.scene == strip.scene
 
@@ -128,22 +128,26 @@ def test_keep_gp_toolsettings(basic_synced_setup):
     # Shot 1
     # Create GP object and change tool settings's brush type
     bpy.context.window.scene = shot_strip_1.scene
-    bpy.ops.object.gpencil_add(type="MONKEY")
+    bpy.ops.object.grease_pencil_add(type="MONKEY")
+    bpy.ops.object.mode_set(mode="PAINT_GREASE_PENCIL")
+    
     gpencil_shot_1 = bpy.context.active_object
     gp_settings_1 = shot_strip_1.scene.tool_settings.gpencil_paint
-    gp_settings_1.brush = bpy.data.brushes["Pencil"]
+    set_grease_pencil_brush(bpy.context, bpy.data.brushes["Pencil"])
+
 
     # Shot 2
     # Create a GP object and assign the same materials as the first one
     shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.frame_final_end)
     bpy.context.window.scene = shot_strip_2.scene
-    bpy.ops.object.gpencil_add(type="MONKEY")
+    bpy.ops.object.grease_pencil_add(type="MONKEY")
+    bpy.ops.object.mode_set(mode="PAINT_GREASE_PENCIL")
     gpencil_shot_2 = bpy.context.active_object
     for idx, material in enumerate(gpencil_shot_1.data.materials):
         gpencil_shot_2.material_slots[idx].material = material
     # Select a different brush type than in Shot 1
     gp_settings_2 = shot_strip_2.scene.tool_settings.gpencil_paint
-    gp_settings_2.brush = bpy.data.brushes["Pen"]
+    set_grease_pencil_brush(bpy.context, bpy.data.brushes["Paint"])
 
     # Shot 3
     # Empty scene
@@ -177,11 +181,11 @@ def test_keep_gp_toolsettings_interaction_mode(basic_synced_setup):
 
     sync_settings.keep_gpencil_tool_settings = True
 
-    interaction_mode = "PAINT_GPENCIL"
+    interaction_mode = "PAINT_GREASE_PENCIL"
     # Shot 1
     # Create GP object and change interaction mode
     bpy.context.window.scene = shot_strip_1.scene
-    bpy.ops.object.gpencil_add(type="MONKEY")
+    bpy.ops.object.grease_pencil_add(type="MONKEY")
     gpencil_shot_1 = bpy.context.active_object
     # Go to paint mode
     bpy.ops.object.mode_set(mode=interaction_mode)
@@ -194,7 +198,7 @@ def test_keep_gp_toolsettings_interaction_mode(basic_synced_setup):
     # Scene with a single GP object
     shot_strip_3 = create_shot_scene(edit_scene, 1, shot_strip_2.frame_final_end)
     bpy.context.window.scene = shot_strip_3.scene
-    bpy.ops.object.gpencil_add(type="MONKEY")
+    bpy.ops.object.grease_pencil_add(type="MONKEY")
     gpencil_shot_3 = bpy.context.active_object
 
     # Start the tests from a neutral scene
@@ -278,8 +282,8 @@ def test_camera_strip(basic_synced_setup):
     shot_scene.collection.objects.link(cam1)
     shot_scene.collection.objects.link(cam2)
 
-    # Create a new strip poiting to the same scene
-    shot_strip_2 = edit_scene.sequence_editor.sequences.new_scene(
+    # Create a new strip pointing to the same scene
+    shot_strip_2 = edit_scene.sequence_editor.strips.new_scene(
         name=f"{shot_scene.name}_2",
         scene=shot_scene,
         channel=1,
