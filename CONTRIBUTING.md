@@ -27,7 +27,7 @@ cd blender_dev
 # Windows:
 Script\activate
 # Linux:
-source Script/activate
+source bin/activate
 ```
 Now that the virtual environment is activated, install the requirements
 ```
