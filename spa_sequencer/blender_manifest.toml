@@ -45,12 +45,8 @@ wheels = [
   "./wheels/opentimelineio-0.18.1-cp311-cp311-win_amd64.whl",
   "./wheels/opentimelineio_plugins-0.18.1-py3-none-any.whl",
   "./wheels/otio_aaf_adapter-2.0.0-py3-none-any.whl",
-  "./wheels/otio_ale_adapter-1.1.0-py3-none-any.whl",
-  "./wheels/otio_burnins_adapter-1.0.0-py3-none-any.whl",
   "./wheels/otio_cmx3600_adapter-1.0.0-py3-none-any.whl",
   "./wheels/otio_fcp_adapter-1.0.0-py3-none-any.whl",
-  "./wheels/otio_maya_sequencer_adapter-1.0.0-py3-none-any.whl",
-  "./wheels/otio_svg_adapter-1.0.0-py3-none-any.whl",
   "./wheels/otio_xges_adapter-1.0.0-py3-none-any.whl",
   "./wheels/pyaaf2-1.7.1-py2.py3-none-any.whl",
 
