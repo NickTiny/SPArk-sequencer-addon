@@ -91,7 +91,7 @@ blender -b -P scripts\run_mypy.py
 ### Running unit tests
 
 ```
-blender -b -P scripts\run_pytest.py
+blender --factory-startup -b -P scripts/run_pytest.py
 ```
 
 
