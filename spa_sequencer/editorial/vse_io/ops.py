@@ -83,7 +83,7 @@ class IMPORT_OT_otio(bpy.types.Operator, ImportHelper):
             type="COLOR",
             channel=channel,
             frame_start=frame_start,
-            frame_end=frame_start + duration,
+            length=duration,
         )
         # Indicate missing media reference.
         new_strip.color = STRIP_MISSING_REFERENCE_COLOR
