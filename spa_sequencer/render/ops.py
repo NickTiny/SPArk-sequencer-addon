@@ -19,7 +19,7 @@ from .tasks import (
 )
 
 from ..sync.core import get_sync_settings
-from ..utils import register_classes, unregister_classes
+from ..utils import register_classes, unregister_classes, get_edit_scene
 
 
 class RenderCancelled(RuntimeError):
@@ -69,7 +69,7 @@ class SEQUENCER_OT_batch_render(bpy.types.Operator):
     @classmethod
     def poll(cls, context: bpy.types.Context):
         return (
-            context.scene.sequence_editor
+            get_edit_scene(context).sequence_editor
             and context.window_manager.batch_render.status != "RUNNING"
         )
 
@@ -172,11 +172,11 @@ class SEQUENCER_OT_batch_render(bpy.types.Operator):
         return {"RUNNING_MODAL"}
 
     def setup(self, context):
-        self.setup_tasks(context.scene)
+        self.setup_tasks(get_edit_scene(context))
         self.render_props = context.window_manager.batch_render
 
         if not self.tasks:
-            self.report({"WARNING"}, f"Nothing to render in {context.scene.name}")
+            self.report({"WARNING"}, f"Nothing to render in {get_edit_scene(context).name}")
             self.render_props.status = "CANCELLED"
             return False
 
@@ -231,7 +231,7 @@ class SEQUENCER_OT_batch_render(bpy.types.Operator):
 
         # Temporarily change resolution for render view to have a fixed, pre-defined
         # size.
-        render = context.scene.render
+        render = get_edit_scene(context).render
         resolution_overrides = ValueOverrides()
         r_ratio = render.resolution_y / render.resolution_x
         win_height = int(self.RENDER_WINDOW_WIDTH * r_ratio)
@@ -381,7 +381,7 @@ class SEQUENCER_OT_batch_render(bpy.types.Operator):
         if self.options.is_invoke:
             return {"FINISHED"}
 
-        if context.scene.batch_render_options.renderer == "VIEWPORT":
+        if get_edit_scene(context).batch_render_options.renderer == "VIEWPORT":
             self.report(
                 {"ERROR"}, "Blocking render incompatible with viewport rendering."
             )

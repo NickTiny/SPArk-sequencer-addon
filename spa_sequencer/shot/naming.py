@@ -8,7 +8,7 @@ from typing import NamedTuple, Optional, Union
 
 import bpy
 
-from ..utils import register_classes, unregister_classes
+from ..utils import get_edit_scene, register_classes, unregister_classes
 
 
 class ShotPrefix(Enum):
@@ -319,7 +319,7 @@ class ShotNamingProperty(bpy.types.PropertyGroup):
 
     def set_use_next_shot_name(self, val):
         """Update naming to use next available shot name."""
-        sed = bpy.context.scene.sequence_editor
+        sed = get_edit_scene(bpy.context).sequence_editor
         self.init_from_name(shot_naming.next_shot_name_from_sequences(sed))
         
     def get_use_next_shot_name(self):
