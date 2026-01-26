@@ -27,7 +27,7 @@ cd blender_dev
 # Windows:
 Script\activate
 # Linux:
-source Script/activate
+source bin/activate
 ```
 Now that the virtual environment is activated, install the requirements
 ```
@@ -91,7 +91,7 @@ blender -b -P scripts\run_mypy.py
 ### Running unit tests
 
 ```
-blender -b -P scripts\run_pytest.py
+blender --factory-startup -b -P scripts/run_pytest.py
 ```
 
 
