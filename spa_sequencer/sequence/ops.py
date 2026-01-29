@@ -279,12 +279,57 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class SEQUENCE_OT_strip_jump(bpy.types.Operator):
+    """Jump to the next or previous strip in the master timeline.
+
+    This operator is keymapped to PageUp/PageDown by default and will allow
+    jumping to the next/previous strip in the master scene's sequencer, when the
+    mouse is outside of the sequencer area.
+    """
+
+    bl_idname = "sequence.strip_jump_anywhere"
+    bl_label = "Jump Strip"
+    bl_description = "Jump to the next/previous strip"
+    bl_options = {"UNDO", "INTERNAL"}
+
+    bl_keymaps_defaults = {
+        "space_type": "EMPTY",
+        "category_name": "Frames",
+    }
+    bl_keymaps = [
+        {"key": "PAGE_UP", "value": "PRESS", "properties": {"next": False}},
+        {"key": "PAGE_DOWN", "value": "PRESS", "properties": {"next": True}},
+    ]
+
+    # Backwards-compatible boolean property used by UI/python calls in some workflows
+    next: bpy.props.BoolProperty(
+        name="Next",
+        description="Direction to jump: True for next, False for previous (compat)",
+        default=True,
+        options={"SKIP_SAVE"},
+    )
+
+
+    def execute(self, context: bpy.types.Context):
+        master_scene = get_sync_settings().master_scene
+        
+        # Fallback to context scene if no master scene is set
+        if not master_scene:
+            master_scene = context.scene
+
+        with context.temp_override(sequencer_scene=master_scene):
+            bpy.ops.sequencer.strip_jump(next=self.next, center=False)
+
+        return {"FINISHED"}
+
+
 classes = (
     SEQUENCE_OT_check_obj_users_scene,
     DOPESHEET_OT_sequence_navigate,
     SEQUENCE_OT_active_shot_camera_set,
     SEQUENCE_OT_active_shot_scene_set,
     SEQUENCE_OT_copy_scene_strip_setup,
+    SEQUENCE_OT_strip_jump,
 )
 
 
