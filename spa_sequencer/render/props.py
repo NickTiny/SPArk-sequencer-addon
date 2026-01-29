@@ -8,12 +8,11 @@ import bpy
 from ..utils import register_classes, unregister_classes
 
 
-def version_is_4_2():
-    version_number = int(bpy.app.version[0]) + (int(bpy.app.version[1]) / 10)
-    return bool(version_number >= 4.2)
-
-
-BLENDER_EEVEE = "BLENDER_EEVEE_NEXT" if version_is_4_2() else "BLENDER_EEVEE"
+BLENDER_EEVEE = (
+    "BLENDER_EEVEE_NEXT"
+    if (4, 2, 0) < bpy.app.version < (5, 0, 0)
+    else "BLENDER_EEVEE"
+)
 
 MEDIA_TYPES_FORMATS = {
     "IMAGES": ("JPEG", "jpg"),
