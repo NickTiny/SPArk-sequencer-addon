@@ -4,7 +4,7 @@
 import bpy
 
 from . import core
-from ..utils import register_classes, unregister_classes
+from ..utils import get_edit_scene, register_classes, unregister_classes
 
 
 class COLLECTION_OT_shared_folder_from_collection(bpy.types.Operator):
@@ -42,8 +42,8 @@ def get_active_or_selected_scenes(context: bpy.types.Context) -> list[bpy.types.
     :param context: The context.
     :return: The list of (active or selected) scenes based on `context`.
     """
-    if context.area.type == "SEQUENCE_EDITOR" and context.scene.sequence_editor:
-        return get_scenes_from_selected_sequences(context.scene.sequence_editor)
+    if context.area.type == "SEQUENCE_EDITOR" and get_edit_scene(context).sequence_editor:
+        return get_scenes_from_selected_sequences(get_edit_scene(context).sequence_editor)
     else:
         return [context.scene]
 
@@ -186,11 +186,11 @@ class COLLECTION_OT_shared_folder_shots_select(bpy.types.Operator):
 
     @classmethod
     def poll(self, context: bpy.types.Context):
-        return context.scene.sequence_editor is not None
+        return get_edit_scene(context).sequence_editor is not None
 
     def execute(self, context: bpy.types.Context):
         seqs = core.get_scene_sequence_users(
-            bpy.data.collections[self.shared_folder_name], context.scene.sequence_editor
+            bpy.data.collections[self.shared_folder_name], get_edit_scene(context).sequence_editor
         )
         bpy.ops.sequencer.select_all(action="DESELECT")
         for seq in seqs:

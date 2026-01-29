@@ -3,7 +3,7 @@
 
 import bpy
 
-from ..utils import register_classes, unregister_classes
+from ..utils import register_classes, unregister_classes, get_edit_scene
 
 
 class SEQUENCER_PT_batch_render(bpy.types.Panel):
@@ -14,7 +14,7 @@ class SEQUENCER_PT_batch_render(bpy.types.Panel):
 
     def draw(self, context: bpy.types.Context):
         self.layout.use_property_split = True
-        options = context.scene.batch_render_options
+        options = get_edit_scene(context).batch_render_options
         self.layout.prop(options, "media_type")
         self.layout.prop(options, "render_engine")
         self.layout.prop(options, "resolution")
