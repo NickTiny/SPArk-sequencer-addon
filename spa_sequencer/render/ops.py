@@ -321,6 +321,7 @@ class SEQUENCER_OT_batch_render(bpy.types.Operator):
             status = "CANCELLED"
         except Exception:
             message = f"Batch Render failed. \n{traceback.format_exc()}"
+            print(message)
             report_level = "ERROR"
             status = "CANCELLED"
 
