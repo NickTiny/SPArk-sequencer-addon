@@ -8,6 +8,7 @@ import os
 from pytest import fixture
 
 from utils import create_shot_scene
+from spa_sequencer.render.props import BLENDER_EEVEE
 
 
 @fixture
@@ -41,14 +42,14 @@ def basic_render_setup() -> tuple[bpy.types.Scene, bpy.types.SceneStrip]:
     return edit_scene, shot_strip
 
 
-def _render_with_engine(basic_render_setup, engine_name):
+def _render_with_engine(basic_render_setup, engine_name, media_type="IMAGES"):
     """Helper function to test rendering with a specific engine."""
     edit_scene, shot_strip = basic_render_setup
     
     # Set up render options
     render_options = edit_scene.batch_render_options
     render_options.render_engine = engine_name
-    render_options.media_type = "IMAGES"
+    render_options.media_type = media_type
     render_options.resolution = "25"  # 1/4 resolution for speed
     
     # Create temporary directory for output
@@ -64,15 +65,22 @@ def _render_with_engine(basic_render_setup, engine_name):
         assert result == {"FINISHED"}
 
 
-def test_render_all_engines(basic_render_setup):
-    """Test rendering with all available render engines."""
-    edit_scene, _ = basic_render_setup
+def test_workbench_render_images(basic_render_setup):
+    """Test rendering with Workbench engine."""
+    _render_with_engine(basic_render_setup, "BLENDER_WORKBENCH")
     
-    # Get batch render options to access engine enum items
-    render_options = edit_scene.batch_render_options
-    engine_items = render_options.bl_rna.properties["render_engine"].enum_items
+def test_eevee_render_images(basic_render_setup):
+    """Test rendering with Eevee engine."""
+    _render_with_engine(basic_render_setup, BLENDER_EEVEE)
     
-    # Test each available engine
-    for engine_item in engine_items:
-        engine_name = engine_item.identifier
-        _render_with_engine(basic_render_setup, engine_name)
+def test_cycles_render_images(basic_render_setup):
+    """Test rendering with Cycles engine."""
+    _render_with_engine(basic_render_setup, "CYCLES")
+
+def test_movie_after_images(basic_render_setup):
+    """Test rendering with Workbench engine."""
+    _render_with_engine(basic_render_setup, "BLENDER_WORKBENCH", media_type="MOVIE")
+    
+def test_images_after_movie(basic_render_setup):
+    """Test rendering with Workbench engine."""
+    _render_with_engine(basic_render_setup, "BLENDER_WORKBENCH", media_type="IMAGES")
