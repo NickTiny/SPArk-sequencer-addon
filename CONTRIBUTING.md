@@ -111,3 +111,11 @@ blender -b -P scripts\run_sphinx-build.py
 ```
 
 This generates a static HTML site, within the `apidoc/generated/build` folder by default.
+
+
+## Packaging
+Using Blender's native [extension building function](https://docs.blender.org/manual/en/latest/advanced/extensions/python_wheels.html#platform-builds), package the `spa_sequencer` directory creating one package per platform. 
+
+```
+blender --command extension build --source-dir spa_sequencer --output-dir dist --split-platforms
+```
