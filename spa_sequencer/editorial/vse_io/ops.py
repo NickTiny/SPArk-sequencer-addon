@@ -9,7 +9,7 @@ from bpy_extras.io_utils import ExportHelper, ImportHelper
 import opentimelineio as otio
 from opentimelineio.opentime import TimeRange, RationalTime
 
-from ...utils import register_classes, unregister_classes
+from ...utils import register_classes, unregister_classes, get_edit_scene
 
 from .core import (
     get_media_reference_filepath,
@@ -178,18 +178,18 @@ class IMPORT_OT_otio(bpy.types.Operator, ImportHelper):
         return duration
 
     def execute(self, context: bpy.types.Context):
-        scene = context.scene
-        if not scene.sequence_editor:
-            scene.sequence_editor_create()
+        edit_scene = get_edit_scene(context)
+        if not edit_scene.sequence_editor:
+            edit_scene.sequence_editor_create()
 
-        self.seq_editor = scene.sequence_editor
+        self.seq_editor = edit_scene.sequence_editor
 
         timeline = otio.adapters.read_from_file(self.filepath)
         tracks = timeline.audio_tracks() + timeline.video_tracks()
 
         for idx, track in enumerate(tracks):
             channel = idx + 1
-            self.transcribe_otio_track(track, scene.frame_start, channel)
+            self.transcribe_otio_track(track, edit_scene.frame_start, channel)
 
         bpy.ops.sequencer.refresh_all()
         return {"FINISHED"}
@@ -229,10 +229,10 @@ class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
-        return context.scene.sequence_editor is not None
+        return get_edit_scene(context).sequence_editor is not None
 
     def execute(self, context: bpy.types.Context):
-        seq_editor: bpy.types.SequenceEditor = context.scene.sequence_editor
+        seq_editor: bpy.types.SequenceEditor = get_edit_scene(context).sequence_editor
 
         try:
             timeline = self.build_otio_timeline(seq_editor)

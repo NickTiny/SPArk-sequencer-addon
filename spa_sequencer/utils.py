@@ -100,3 +100,18 @@ def remove_auto_numbering_suffix(name: str) -> str:
     :return: The name without numbering suffix if any
     """
     return re.sub(r".\d{3}$", "", name)
+
+def get_edit_scene(context: bpy.types.Context) -> bpy.types.Scene:
+    """Get the sequencer scene from the context, compatible with new 5.0 API and legacy.
+    https://developer.blender.org/docs/release_notes/5.0/python_api/#vse
+
+    Args:
+        context (bpy.types.Context): Current context.
+
+    Returns:
+        bpy.types.Scene: The sequencer scene.
+    """
+    if bpy.app.version >= (5, 0, 0):
+        return context.sequencer_scene
+    else:
+        return context.scene

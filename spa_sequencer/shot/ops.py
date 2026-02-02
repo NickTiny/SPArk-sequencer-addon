@@ -19,7 +19,7 @@ from ..sync.core import (
     get_sync_settings,
     remap_frame_value,
 )
-from ..utils import register_classes, unregister_classes
+from ..utils import get_edit_scene, register_classes, unregister_classes
 
 
 def get_last_sequence(
@@ -67,11 +67,13 @@ def ensure_sequencer_frame_visible(context: bpy.types.Context, frame: int):
         return
     frame_coord = context.region.view2d.view_to_region(frame, 0, clip=False)[0]
     if frame_coord < 0 or frame_coord > context.region.width:
+        edit_scene = get_edit_scene(context)
+        
         # Temp override current frame value and move view to frame.
-        frame_old = context.scene.frame_current
-        context.scene.frame_current = frame
+        frame_old = edit_scene.frame_current
+        edit_scene.frame_current = frame
         bpy.ops.sequencer.view_frame()
-        context.scene.frame_current = frame_old
+        edit_scene.frame_current = frame_old
 
 
 class SEQUENCER_OT_shot_new(bpy.types.Operator):
@@ -109,14 +111,14 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         SEQUENCER_OT_shot_new.template_names = [
             (s.name, s.name, "")
             for s in bpy.data.scenes
-            if s != context.scene and matches_mode(s)
+            if s != get_edit_scene(context) and matches_mode(s)
         ]
 
         return SEQUENCER_OT_shot_new.template_names
 
     def update_default_source_scene(self, context):
         if self.scene_mode == "EXISTING" and (
-            scene := getattr(context.scene.sequence_editor.active_strip, "scene")
+            scene := getattr(get_edit_scene(context).sequence_editor.active_strip, "scene")
         ):
             self.source_scene = scene.name
 
@@ -178,7 +180,9 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         return True
 
     def invoke(self, context: bpy.types.Context, _event):
-        if not (sed := context.scene.sequence_editor):
+        edit_scene = get_edit_scene(context)
+        
+        if not (sed := edit_scene.sequence_editor):
             self.name = shot_naming.default_shot_name()
         else:
             self.name = shot_naming.next_shot_name_from_sequences(sed)
@@ -189,10 +193,10 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
                 self.source_scene = scene.name
 
         # Create sequence editor data if needed.
-        if not context.scene.sequence_editor:
-            context.scene.sequence_editor_create()
+        if not edit_scene.sequence_editor:
+            edit_scene.sequence_editor_create()
 
-        ref_strip = context.scene.sequence_editor.active_strip
+        ref_strip = edit_scene.sequence_editor.active_strip
         source_scene = bpy.data.scenes.get(self.source_scene)
         if self.scene_mode == "EXISTING":
             if (
@@ -201,7 +205,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
                 and self.source_scene == ref_strip.scene.name
             ):
                 self.start_3d = remap_frame_value(
-                    context.scene.frame_current, ref_strip
+                    edit_scene.frame_current, ref_strip
                 )
             elif source_scene:
                 self.start_3d = source_scene.frame_start
@@ -237,7 +241,8 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             self.report({"ERROR"}, "3D Start is not in the range of source scene")
             return {"CANCELLED"}
 
-        sequences = context.scene.sequence_editor.strips
+        edit_scene = get_edit_scene(context)
+        sequences = edit_scene.sequence_editor.strips
         frame_offset_start = 0
 
         # Source scene handling.
@@ -282,18 +287,18 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             self.naming.to_string(),
             shot_scene,
             self.channel,
-            context.scene.frame_current,
+            edit_scene.frame_current,
         )
         new_strip.frame_final_duration = self.duration
         slip_shot_content(new_strip, frame_offset_start)
         new_strip.scene_camera = new_strip.scene.camera
-        context.scene.sequence_editor.active_strip = new_strip
+        edit_scene.sequence_editor.active_strip = new_strip
 
         if self.scene_mode == "EXISTING":
             shot_scene.camera = source_scene.camera
 
-        context.scene.frame_end = max(
-            new_strip.frame_final_end - 1, context.scene.frame_end
+        edit_scene.frame_end = max(
+            new_strip.frame_final_end - 1, edit_scene.frame_end
         )
 
         # Ensure newly created shot is visible.
@@ -354,7 +359,8 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
         return new_strip
 
     def execute(self, context: bpy.types.Context):
-        sed = context.scene.sequence_editor
+        edit_scene = get_edit_scene(context)
+        sed = edit_scene.sequence_editor
 
         new_strips = []
         for strip in get_selected_scene_sequences(sed.strips):
@@ -366,7 +372,7 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
             return {"CANCELLED"}
 
         # Move current frame to the new strip's start frame.
-        context.scene.frame_set(new_strips[0].frame_final_start)
+        edit_scene.frame_set(new_strips[0].frame_final_start)
 
         # Deselect all strips
         bpy.ops.sequencer.select_all(action="DESELECT")
@@ -375,9 +381,11 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
         sed.active_strip = new_strips[0]
         for strip in new_strips:
             strip.select = True
+            
+        edit_scene = get_edit_scene(context)
 
-        context.scene.frame_end = max(
-            new_strips[-1].frame_final_end - 1, context.scene.frame_end
+        edit_scene.frame_end = max(
+            new_strips[-1].frame_final_end - 1, edit_scene.frame_end
         )
 
         # Ensure created strips are visible.
@@ -413,7 +421,7 @@ class SEQUENCER_OT_shot_delete(bpy.types.Operator):
 
     def invoke(self, context: bpy.types.Context, event):
         self.strips = get_selected_scene_sequences(
-            context.scene.sequence_editor.strips
+            get_edit_scene(context).sequence_editor.strips
         )
         if not self.strips:
             self.report({"ERROR"}, "No selected shots")
@@ -442,7 +450,8 @@ class SEQUENCER_OT_shot_delete(bpy.types.Operator):
 
     def execute(self, context: bpy.types.Context):
         deleted_datablocks = 0
-        strips = get_selected_scene_sequences(context.scene.sequence_editor.strips)
+        edit_scene = get_edit_scene(context)
+        strips = get_selected_scene_sequences(edit_scene.sequence_editor.strips)
 
         # Store scenes to delete in a set to avoid duplicates
         scenes = set()
@@ -450,7 +459,7 @@ class SEQUENCER_OT_shot_delete(bpy.types.Operator):
         for strip in strips:
             if strip.scene and self.delete_scenes:
                 scenes.add(strip.scene)
-            context.scene.sequence_editor.strips.remove(strip)
+            edit_scene.sequence_editor.strips.remove(strip)
 
         # Delete the scenes
         for scene in scenes:
@@ -503,13 +512,15 @@ class SEQUENCER_OT_shot_timing_adjust(bpy.types.Operator):
     def get_active_strip(
         context: bpy.types.Context,
     ) -> Optional[bpy.types.SceneStrip]:
+        edit_scene = get_edit_scene(context)
+        
         if context.area.type == "DOPESHEET_EDITOR":
             strip = get_sync_master_strip(use_cache=True)[0]
             return strip if strip and strip.scene == context.window.scene else None
-        elif context.scene.sequence_editor and isinstance(
-            context.scene.sequence_editor.active_strip, bpy.types.SceneStrip
+        elif edit_scene.sequence_editor and isinstance(
+            edit_scene.sequence_editor.active_strip, bpy.types.SceneStrip
         ):
-            return context.scene.sequence_editor.active_strip
+            return edit_scene.sequence_editor.active_strip
 
         return None
 
@@ -629,7 +640,7 @@ class SEQUENCER_OT_shot_timing_adjust(bpy.types.Operator):
             self.offset = 0
             self.execute(context)
         # Restore scenes' original end frames
-        context.scene.frame_end = self.original_edit_frame_end
+        get_edit_scene(context).frame_end = self.original_edit_frame_end
         self.strip.scene.frame_end = self.original_strip_scene_end
         self.restore_ui(context)
 
@@ -653,13 +664,13 @@ class SEQUENCER_OT_shot_rename(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.scene.sequence_editor and isinstance(
+        return get_edit_scene(context).sequence_editor and isinstance(
             cls.active_shot(context), bpy.types.SceneStrip
         )
 
     @staticmethod
     def active_shot(context) -> bpy.types.SceneStrip:
-        return context.scene.sequence_editor.active_strip
+        return get_edit_scene(context).sequence_editor.active_strip
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
         self.naming.init_from_name(self.active_shot(context).name)
@@ -701,7 +712,7 @@ class SEQUENCER_OT_shot_rename(bpy.types.Operator):
             shot_strip.name,
             current_name,
             "SEQUENCE",
-            context.scene.sequence_editor.strips,
+            get_edit_scene(context).sequence_editor.strips,
         )
 
         # Scene renaming details.
@@ -723,7 +734,7 @@ class SEQUENCER_OT_shot_rename(bpy.types.Operator):
         # Evaluate shot strip renaming.
         if new_name != shot_strip.name:
             # Ensure strip name is available.
-            if new_name in context.scene.sequence_editor.strips:
+            if new_name in get_edit_scene(context).sequence_editor.strips:
                 self.report({"ERROR"}, f"Shot '{new_name}' already exists")
                 return {"CANCELLED"}
             do_rename_strip = True
@@ -773,7 +784,7 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
-        return context.scene.sequence_editor is not None
+        return get_edit_scene(context).sequence_editor is not None
 
     def draw(self, context):
         self.layout.use_property_split = True
@@ -788,7 +799,7 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
     def execute(self, context: bpy.types.Context):
         scene_strips = [
             strip
-            for strip in context.scene.sequence_editor.strips
+            for strip in get_edit_scene(context).sequence_editor.strips
             if isinstance(strip, bpy.types.SceneStrip)
         ]
 

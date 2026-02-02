@@ -8,7 +8,7 @@ import bpy
 
 from ..shot.naming import ShotNaming, ShotPrefix
 from ..shot.core import slip_shot_content
-from ..utils import register_classes, unregister_classes
+from ..utils import register_classes, unregister_classes, get_edit_scene
 
 from ..editorial.core import gather_strips_groups_by_regex
 from ..render.tasks import (
@@ -59,7 +59,7 @@ class SEQUENCER_OT_edit_conform_shots_from_panels(bpy.types.Operator):
         scenes = [
             (s.name, s.name, "")
             for s in bpy.data.scenes
-            if s != context.scene and s.camera
+            if s != get_edit_scene(context) and s.camera
         ]
         if not scenes:
             scenes = [("NONE", "No Valid Shot Scene", "No valid shot scene found")]
@@ -80,7 +80,7 @@ class SEQUENCER_OT_edit_conform_shots_from_panels(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
-        return context.scene.sequence_editor is not None
+        return get_edit_scene(context).sequence_editor is not None
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
         return context.window_manager.invoke_props_dialog(self)
@@ -90,7 +90,7 @@ class SEQUENCER_OT_edit_conform_shots_from_panels(bpy.types.Operator):
             self.report({"ERROR"}, "No valid shot Scene")
             return {"CANCELLED"}
 
-        seq_editor = context.scene.sequence_editor
+        seq_editor = get_edit_scene(context).sequence_editor
 
         # Get list of strips from reference channel.
         ref_strips = sorted(
@@ -204,7 +204,7 @@ class SEQUENCER_OT_edit_conform_shots_from_editorial(bpy.types.Operator):
 
     def execute(self, context: bpy.types.Context):
 
-        seq_editor = context.scene.sequence_editor
+        seq_editor = get_edit_scene(context).sequence_editor
         regex = re.compile(self.shot_id_regex)
 
         shot_naming = ShotNaming()
