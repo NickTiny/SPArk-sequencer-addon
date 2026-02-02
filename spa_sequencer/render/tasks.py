@@ -39,9 +39,10 @@ class ValueOverrides:
         setattr(obj, attr, value)
 
     def revert(self):
-        """Revert all registered overrides."""
+        """Revert all registered overrides in reverse order."""
         for obj, attrs in self._overrides.items():
-            for key, value in attrs:
+            # Revert in reverse order to handle dependencies between attributes
+            for key, value in reversed(attrs):
                 setattr(obj, key, value)
         self._overrides.clear()
 
@@ -219,6 +220,8 @@ class StripRenderTask(BaseRenderTask):
             # Filepath: add separator between resolved name and auto frame number suffix
             filepath += "."
             # Setup render settings
+            if bpy.app.version >= (5, 0, 0):
+                self.overrides.set(render.image_settings, "media_type", "IMAGE")
             self.overrides.set(render.image_settings, "file_format", file_format)
             self.overrides.set(render.image_settings, "quality", 100)
             self.overrides.set(render.image_settings, "color_mode", "RGB")
@@ -226,6 +229,8 @@ class StripRenderTask(BaseRenderTask):
             # Filepath: add extension to avoid auto frame range suffix
             filepath += f".{file_ext}"
             # Setup render settings
+            if bpy.app.version >= (5, 0, 0):
+                self.overrides.set(render.image_settings, "media_type", "VIDEO")
             self.overrides.set(render.image_settings, "file_format", "FFMPEG")
             self.overrides.set(render.ffmpeg, "format", file_format)
             self.overrides.set(render.ffmpeg, "constant_rate_factor", "PERC_LOSSLESS")
