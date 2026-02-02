@@ -111,7 +111,7 @@ def get_edit_scene(context: bpy.types.Context) -> bpy.types.Scene:
     Returns:
         bpy.types.Scene: The sequencer scene.
     """
-    if bpy.app.version >= (5, 0, 0):
+    if bpy.app.version >= (5, 0, 0) and context.sequencer_scene is not None:
         return context.sequencer_scene
     else:
         return context.scene
