@@ -13,18 +13,6 @@ from . import (
 )
 
 
-bl_info = {
-    "name": "SPArk Sequencer",
-    "author": "Nick Alberelli & The SPA Studios",
-    "description": "Toolset to improve the sequence workflow in Blender.",
-    "blender": (4, 4, 0),
-    "version": (0, 1, 5),
-    "location": "",
-    "warning": "",
-    "category": "SPA",
-}
-
-
 packages = (
     sync,
     shot,
