@@ -308,6 +308,7 @@ def scene_change_manager(context: bpy.types.Context):
                 set_gpencil_mode_safe(context, gpencil, gp_mode)
 
 def set_grease_pencil_brush(context: bpy.types.Context, brush: bpy.types.Brush):
+    # TODO  Remove temporary workaround for https://projects.blender.org/blender/blender/issues/152862
     paint = context.tool_settings.gpencil_paint
     
     if not paint or not brush:
