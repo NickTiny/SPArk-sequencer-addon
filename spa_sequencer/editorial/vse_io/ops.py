@@ -32,7 +32,7 @@ EXPORT_AAF_BLENDER_METADATA_PREFIX = "Blender."
 
 
 class IMPORT_OT_otio(bpy.types.Operator, ImportHelper):
-    bl_idname = "import.vse_otio"
+    bl_idname = "import_timeline.vse_otio"
     bl_label = "Import Timeline"
     bl_description = "Import a timeline using OTIO"
     bl_options = {"UNDO", "REGISTER", "PRESET"}
@@ -78,13 +78,21 @@ class IMPORT_OT_otio(bpy.types.Operator, ImportHelper):
         :param duration: Strip duration.
         :param channel: Strip channel.
         """
-        new_strip = self.seq_editor.strips.new_effect(
-            name=name,
-            type="COLOR",
-            channel=channel,
-            frame_start=frame_start,
-            length=duration,
-        )
+        # Build the kwargs depending on Blender API version.
+        # Blender 5.0 introduced a change to use `length` for strip creation.
+        kwargs = {
+            "name": name,
+            "type": "COLOR",
+            "channel": channel,
+            "frame_start": frame_start,
+        }
+        if bpy.app.version >= (5, 0, 0):
+            kwargs["length"] = duration
+        else:
+            # Older Blender versions expect `frame_end` instead of `length`.
+            kwargs["frame_end"] = frame_start + duration
+
+        new_strip = self.seq_editor.strips.new_effect(**kwargs)
         # Indicate missing media reference.
         new_strip.color = STRIP_MISSING_REFERENCE_COLOR
         return new_strip
@@ -196,7 +204,7 @@ class IMPORT_OT_otio(bpy.types.Operator, ImportHelper):
 
 
 class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
-    bl_idname = "export.vse_otio"
+    bl_idname = "export_timeline.vse_otio"
     bl_label = "Export Timeline"
     bl_description = "Export a VSE timeline using OTIO"
     bl_options = {"PRESET"}
