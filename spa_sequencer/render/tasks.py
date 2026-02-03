@@ -288,6 +288,28 @@ class StripRenderTask(BaseRenderTask):
                 self.output_channel_offset,
                 render_options,
             )
+            
+    def create_image_media_strip(self, sed: bpy.types.SequenceEditor, scene_strip: bpy.types.SceneStrip, channel_offset: int):
+        # Create a image strip that only contains first frame
+        frame_number = scene_strip.scene.frame_start 
+        img_path = scene_strip.scene.render.frame_path(frame=frame_number)
+        strip = sed.strips.new_image(
+            name=os.path.basename(bpy.path.abspath(img_path)),
+            filepath=img_path,
+            channel=scene_strip.channel + channel_offset,
+            frame_start=scene_strip.frame_final_start,
+        )
+               
+        if scene_strip.frame_final_duration <= 1:
+            return strip
+               
+        # First frame already include start from second frame
+        for idx in range(1, scene_strip.frame_final_duration):
+            frame_number = scene_strip.scene.frame_start + idx 
+            img_path = scene_strip.scene.render.frame_path(frame=frame_number)
+            strip.elements.append(os.path.basename(bpy.path.abspath(img_path)))
+            
+        return strip
 
     def create_output_media_strip(
         self,
@@ -308,16 +330,13 @@ class StripRenderTask(BaseRenderTask):
         strips: list[tuple[bpy.types.SceneStrip, int, int]] = []
 
         if media_type == "IMAGES":
-            for idx in range(scene_strip.frame_final_duration):
-                frame_number = scene_strip.scene.frame_start + idx
-                img_path = scene_strip.scene.render.frame_path(frame=frame_number)
-                strip = sed.strips.new_image(
-                    name=os.path.basename(bpy.path.abspath(img_path)),
-                    filepath=img_path,
-                    channel=scene_strip.channel + channel_offset,
-                    frame_start=scene_strip.frame_final_start + idx,
-                )
-                strips.append((strip, frame_number, frame_number))
+            strip = self.create_image_media_strip(sed, scene_strip, channel_offset)
+            strips.append(
+                (strip, scene_strip.scene.frame_start, scene_strip.scene.frame_end)
+            )
+            strips.append(
+                (strip, scene_strip.scene.frame_start, scene_strip.scene.frame_end)
+            )
 
         elif media_type == "MOVIE":
             filepath = scene_strip.scene.render.filepath
