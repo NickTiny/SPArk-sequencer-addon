@@ -23,6 +23,16 @@ class SEQUENCER_PT_batch_render(bpy.types.Panel):
 
         self.layout.prop(options, "filepath_pattern")
         self.layout.prop(options, "selection_only")
+        
+        if options.media_type == "IMAGES":
+            # Render settings
+            render_box = self.layout.box()
+            render_box.label(text="Image Settings")
+            render_col = render_box.column(align=True)
+            render_col.prop(options, "use_overwrite")
+            render_col.prop(options, "use_placeholder")
+            render_col.prop(options, "frame_step")
+        
         box = self.layout.box()
         box.prop(options, "output_scene")
         if options.output_scene:

@@ -181,6 +181,7 @@ class StripRenderTask(BaseRenderTask):
         self.overrides.set(scene, "frame_end", frame_end)
         self.overrides.set(scene, "frame_preview_start", frame_start)
         self.overrides.set(scene, "frame_preview_end", frame_end)
+        self.overrides.set(scene, "frame_step", render_options.frame_step)
 
         # Setup resolution values based on resolution scale setting.
         # NOTE: Blender cannot render movies with odd width/height.
@@ -200,6 +201,8 @@ class StripRenderTask(BaseRenderTask):
         self.overrides.set(scene.render, "resolution_y", r_height)
         self.overrides.set(scene.render, "resolution_percentage", 100)
         self.overrides.set(scene.render, "use_sequencer", False)
+        self.overrides.set(scene.render, "use_overwrite", render_options.use_overwrite)
+        self.overrides.set(scene.render, "use_placeholder", render_options.use_placeholder)
 
         if strip.scene_camera:
             self.overrides.set(scene, "camera", strip.scene_camera)
@@ -289,10 +292,39 @@ class StripRenderTask(BaseRenderTask):
                 render_options,
             )
             
-    def create_image_media_strip(self, sed: bpy.types.SequenceEditor, scene_strip: bpy.types.SceneStrip, channel_offset: int):
+    def create_image_media_strip(self, context: bpy.types.Context, sed: bpy.types.SequenceEditor, scene_strip: bpy.types.SceneStrip, channel_offset: int, render_options: BatchRenderOptions):
+        """Create an image sequence strip, skipping missing frames and compensating for frame_step.
+        
+        :param context: The context for operators.
+        :param sed: The sequence editor to add the strip to.
+        :param scene_strip: The scene strip being rendered.
+        :param channel_offset: Channel offset for output scene.
+        :param render_options: The render options including frame_step.
+        """
+        import os
+        
+        frame_step = render_options.frame_step
+        
         # Create a image strip that only contains first frame
         frame_number = scene_strip.scene.frame_start 
         img_path = scene_strip.scene.render.frame_path(frame=frame_number)
+        
+        # Check if first frame exists
+        if not os.path.exists(bpy.path.abspath(img_path)):
+            # Try to find first available frame
+            found = False
+            for offset in range(scene_strip.scene.frame_end - scene_strip.scene.frame_start):
+                test_frame = frame_number + offset
+                test_path = scene_strip.scene.render.frame_path(frame=test_frame)
+                if os.path.exists(bpy.path.abspath(test_path)):
+                    frame_number = test_frame
+                    img_path = test_path
+                    found = True
+                    break
+            if not found:
+                # No frames found, skip this strip
+                return None
+        
         strip = sed.strips.new_image(
             name=os.path.basename(bpy.path.abspath(img_path)),
             filepath=img_path,
@@ -303,11 +335,38 @@ class StripRenderTask(BaseRenderTask):
         if scene_strip.frame_final_duration <= 1:
             return strip
                
-        # First frame already include start from second frame
+        # Add remaining frames, skipping missing ones
+        current_frame = scene_strip.scene.frame_start
         for idx in range(1, scene_strip.frame_final_duration):
-            frame_number = scene_strip.scene.frame_start + idx 
+            # Calculate which frame to check based on frame_step
+            frame_number = scene_strip.scene.frame_start + (idx * frame_step)
+            
+            # Clamp to scene end
+            if frame_number > scene_strip.scene.frame_end:
+                break
+            
             img_path = scene_strip.scene.render.frame_path(frame=frame_number)
-            strip.elements.append(os.path.basename(bpy.path.abspath(img_path)))
+            
+            # Only append if image exists
+            if os.path.exists(bpy.path.abspath(img_path)):
+                strip.elements.append(os.path.basename(bpy.path.abspath(img_path)))
+        
+        # Adjust retiming speed for frame_step compensation before clamping to end frame
+        if frame_step > 1:
+            # Select the strip and apply retiming speed
+            strip.select = True
+            # Speed is in percentage (100 = normal, 50 = double speed)
+            # If we rendered every nth frame, we need to play faster to compensate
+            speed = int(100 / frame_step)
+            with context.temp_override(scene=sed.id_data):
+                bpy.ops.sequencer.retiming_segment_speed_set(speed=speed, keep_retiming=True)
+            strip.select = False
+        
+        # Clamp strip end frame to match the desired scene strip duration
+        desired_end = scene_strip.frame_final_start + scene_strip.frame_final_duration 
+        excess = strip.frame_final_end - desired_end
+        if excess > 0:
+            strip.frame_final_end = desired_end
             
         return strip
 
@@ -330,13 +389,11 @@ class StripRenderTask(BaseRenderTask):
         strips: list[tuple[bpy.types.SceneStrip, int, int]] = []
 
         if media_type == "IMAGES":
-            strip = self.create_image_media_strip(sed, scene_strip, channel_offset)
-            strips.append(
-                (strip, scene_strip.scene.frame_start, scene_strip.scene.frame_end)
-            )
-            strips.append(
-                (strip, scene_strip.scene.frame_start, scene_strip.scene.frame_end)
-            )
+            strip = self.create_image_media_strip(bpy.context, sed, scene_strip, channel_offset, render_options)
+            if strip:  # Only add if strip was created (images exist)
+                strips.append(
+                    (strip, scene_strip.scene.frame_start, scene_strip.scene.frame_end)
+                )
 
         elif media_type == "MOVIE":
             filepath = scene_strip.scene.render.filepath
