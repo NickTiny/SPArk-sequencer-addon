@@ -334,9 +334,6 @@ class StripRenderTask(BaseRenderTask):
             strips.append(
                 (strip, scene_strip.scene.frame_start, scene_strip.scene.frame_end)
             )
-            strips.append(
-                (strip, scene_strip.scene.frame_start, scene_strip.scene.frame_end)
-            )
 
         elif media_type == "MOVIE":
             filepath = scene_strip.scene.render.filepath
