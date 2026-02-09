@@ -430,6 +430,11 @@ def sync_system_update(context: bpy.types.Context, force: bool = False):
         or not master_scene.sequence_editor
     ):
         return
+    
+    # Disable sync_scene_time in active workspaces.
+    if bpy.app.version >= (5, 0, 0):
+        for window in context.window_manager.windows:
+            window.workspace.use_scene_time_sync = False
 
     # In order to evaluate if the master scene's current frame has changed,
     # we current have to rely on a system that stores the last frame values
