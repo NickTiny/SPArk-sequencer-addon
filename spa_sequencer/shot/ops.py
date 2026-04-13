@@ -12,7 +12,6 @@ from .core import (
     get_valid_shot_scenes,
     rename_scene,
     slip_shot_content,
-    set_shot_duration
 )
 from .naming import shot_naming, ShotNamingProperty
 from ..sync.core import (
@@ -290,7 +289,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             self.channel,
             edit_scene.frame_current,
         )
-        set_shot_duration(new_strip, self.duration)
+        new_strip.duration = self.duration
         slip_shot_content(new_strip, left_handle_offset)
         new_strip.scene_camera = new_strip.scene.camera
         edit_scene.sequence_editor.active_strip = new_strip
@@ -348,7 +347,7 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
             name, shot_scene, strip.channel, insert_frame
         )
 
-        set_shot_duration(new_strip, strip.duration)
+        new_strip.duration = strip.duration
 
         if not duplicate_scene:
             new_strip.scene_camera = strip.scene_camera

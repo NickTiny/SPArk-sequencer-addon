@@ -9,7 +9,6 @@ from pytest import fixture
 
 from utils import create_shot_scene
 from spa_sequencer.render.props import BLENDER_EEVEE
-from spa_sequencer.shot.core import set_shot_duration
 
 
 @fixture
@@ -35,7 +34,7 @@ def basic_render_setup() -> tuple[bpy.types.Scene, bpy.types.SceneStrip]:
         shot_scene.camera = bpy.context.active_object
 
     # Set shot strip duration to just 1 frame for fast testing
-    set_shot_duration(shot_strip, 1)
+    shot_strip.duration = 1
 
     # Switch back to edit scene
     bpy.context.window.scene = edit_scene

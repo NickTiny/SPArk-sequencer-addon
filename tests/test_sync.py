@@ -6,7 +6,6 @@ import bpy
 from pytest import fixture
 
 from spa_sequencer.sync.core import remap_frame_value, get_sync_settings, set_grease_pencil_brush
-from spa_sequencer.shot.core import set_shot_duration
 
 from utils import create_shot_scene
 
@@ -56,7 +55,7 @@ def test_change_edit_time(basic_synced_setup):
     edit_scene, shot_strip = basic_synced_setup
 
     # Shorten the strip length
-    set_shot_duration(shot_strip, 10)
+    shot_strip.duration = 10
 
     # Change edit scene's frame within shot's boundaries
     edit_frame = 4

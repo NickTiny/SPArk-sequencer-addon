@@ -7,7 +7,7 @@ import bpy
 
 
 from ..shot.naming import ShotNaming, ShotPrefix
-from ..shot.core import slip_shot_content, set_shot_duration
+from ..shot.core import slip_shot_content
 from ..utils import register_classes, unregister_classes, get_edit_scene
 
 from ..editorial.core import gather_strips_groups_by_regex
@@ -116,7 +116,7 @@ class SEQUENCER_OT_edit_conform_shots_from_panels(bpy.types.Operator):
                 group.frame_start,
             )
             # Match the duration of the whole group.
-            set_shot_duration(shot_strip, group.frame_duration)
+            shot_strip.duration = group.frame_duration
             # Adjust internal offset to target the correct range within the strip's scene.
             slip_shot_content(shot_strip, shot_strip.left_handle)
             # Assign active camera of the scene.
@@ -257,7 +257,7 @@ class SEQUENCER_OT_edit_conform_shots_from_editorial(bpy.types.Operator):
             )
             shot_strip.scene_camera = camera
             # Adjust timing.
-            set_shot_duration(shot_strip, strip.duration)
+            shot_strip.duration = strip.duration
             shot_strip.left_handle = strip.left_handle
             start_offset = frame_start + strip.left_handle_offset - 1
             slip_shot_content(shot_strip, start_offset)

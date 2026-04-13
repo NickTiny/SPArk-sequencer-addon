@@ -629,7 +629,7 @@ def slip_shot_content(
     strip.right_handle_offset -= new_handle_offset
     # Ensure channel and duration are preserved
     strip.channel = channel
-    set_shot_duration(strip, duration)
+    strip.duration = duration
     adapt_scene_range(strip)
 
 
@@ -657,13 +657,6 @@ def get_scene_cameras(scene: bpy.types.Scene) -> list[bpy.types.Object]:
         key=lambda x: x.name,
     )
 
-
-def set_shot_duration(strip: bpy.types.Strip, duration:int):
-    """Set the Duration of a strip by adjusting it's handles
-      - [PR Comment](https://projects.blender.org/blender/blender/pulls/153012#issuecomment-1818253)
-      - [Release Notes](https://developer.blender.org/docs/release_notes/5.1/sequencer/#python-api)
-    """
-    strip.right_handle = strip.left_handle + duration
 
 def register():
     pass
