@@ -6,7 +6,7 @@ Pytest runner executed inside Blender.
 
 Usage::
 
-    local/blender/blender -b --factory-startup -P scripts/run_pytest.py -- [pytest_args]
+    blender -b --factory-startup -P scripts/run_pytest.py -- [pytest_args]
 
 Sets up the addon source directory as a local extension repository,
 refreshes extensions so Blender discovers the addon, then runs pytest.
@@ -25,7 +25,7 @@ except ImportError:
     print(
         "ERROR: pytest is not installed in Blender's Python.\n"
         "Install it into Blender's bundled Python, e.g.:\n"
-        "  local/blender/5.1/python/bin/python3.11 -m pip install pytest",
+        "  blender/5.1/python/bin/python3.13 -m pip install pytest",
         file=sys.stderr,
     )
     sys.exit(1)

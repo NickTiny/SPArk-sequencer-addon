@@ -80,7 +80,7 @@ New commands are available in the Command Palette (Ctrl+Shift+P):
 Running static analysis and unit tests requires a complete Blender Python environment with core packages (bpy, mathutils...) available.
 First, install requirements within Blender's own interpreter.
 ```
-BL_PYEXE -m pip install -r requirements.tests.py
+BL_PYEXE -m pip install -r requirements.tests.txt
 ```
 
 ### Running static analysis
