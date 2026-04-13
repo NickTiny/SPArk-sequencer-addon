@@ -75,6 +75,14 @@ New commands are available in the Command Palette (Ctrl+Shift+P):
   - Clipboard Manager
 
 
+## Installing OpenTimelineIO
+To install OpenTimelineIO and all it's dependant "plugins" which enable additional
+formats such as EDL, AAF and XML. Follow the below command.
+```
+BL_PYEXE -m pip install -r requirements.txt
+```
+
+
 ## Analysis and Testing
 
 Running static analysis and unit tests requires a complete Blender Python environment with core packages (bpy, mathutils...) available.
