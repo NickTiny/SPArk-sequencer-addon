@@ -266,15 +266,15 @@ def test_scene_delete_scene_duplicate_with_shared_collection():
 def test_shot_duration_adjust_positive_offset():
     # Create a shot
     sh1 = create_shot_scene(bpy.context.scene, 1, 1)
-    sh1_original_duration = sh1.frame_final_duration
+    sh1_original_duration = sh1.duration
 
     # Adjust duration: use a positive offset
     offset = 10
     adjust_shot_duration(sh1, offset)
 
     # Strip's final duration and internal scene range should have been impacted
-    assert sh1.frame_final_duration == sh1_original_duration + offset
-    assert sh1.scene.frame_end == sh1.scene.frame_start + sh1.frame_final_duration - 1
+    assert sh1.duration == sh1_original_duration + offset
+    assert sh1.scene.frame_end == sh1.scene.frame_start + sh1.duration - 1
 
 
 def test_shot_duration_adjust_negative_offset():
@@ -284,11 +284,11 @@ def test_shot_duration_adjust_negative_offset():
 
     # Adjust duration: use a negative offset
     sh1_new_duration = 10
-    offset = sh1_new_duration - sh1.frame_final_duration
+    offset = sh1_new_duration - sh1.duration
     adjust_shot_duration(sh1, offset)
 
     # Strip's final duration should have been impacted
-    assert sh1.frame_final_duration == sh1_new_duration
+    assert sh1.duration == sh1_new_duration
     # Internal scene range should have been preserved (shorter duration)
     assert sh1.scene.frame_end == original_frame_end
 
@@ -300,11 +300,11 @@ def test_shot_duration_adjust_negative_offset_clamp():
 
     # Adjust duration: use a negative offset leading to a null duration
     sh1_new_duration = 0
-    offset = sh1_new_duration - sh1.frame_final_duration
+    offset = sh1_new_duration - sh1.duration
     adjust_shot_duration(sh1, offset)
 
     # Duration should have been clamped to 1
-    assert sh1.frame_final_duration == 1
+    assert sh1.duration == 1
     # Internal scene range should have been preserved (shorter duration)
     assert sh1.scene.frame_end == original_frame_end
 
@@ -313,69 +313,69 @@ def test_shot_duration_adjust_from_start_negative_offset():
     # Create a shot
     sh1 = create_shot_scene(bpy.context.scene, 1, 1)
 
-    duration = sh1.frame_final_duration
+    duration = sh1.duration
     # Adjust duration from frame start
     offset = -10
     adjust_shot_duration(sh1, offset, from_frame_start=True)
 
     # Strip start frame should not have changed
-    assert sh1.frame_final_start == 1
+    assert sh1.left_handle == 1
     # Strip content should have been offset
-    assert sh1.frame_offset_start == -offset
-    assert sh1.frame_final_duration == duration + offset
+    assert sh1.left_handle_offset == -offset
+    assert sh1.duration == duration + offset
 
 
 def test_shot_duration_adjust_from_start_negative_offset_clamp():
     # Create a shot
     sh1 = create_shot_scene(bpy.context.scene, 1, 1)
 
-    duration = sh1.frame_final_duration
+    duration = sh1.duration
     # Adjust duration from frame start with an offset going above frame end
     offset = -duration * 2
     adjust_shot_duration(sh1, offset, from_frame_start=True)
 
     # Strip start frame should not have changed
-    assert sh1.frame_final_start == 1
+    assert sh1.left_handle == 1
     # Strip content offset should have been clamped to have a minimum duration of 1
-    assert sh1.frame_offset_start == duration - 1
-    assert sh1.frame_final_duration == 1
+    assert sh1.left_handle_offset == duration - 1
+    assert sh1.duration == 1
 
 
 def test_shot_duration_adjust_from_start_positive_offset_clamp():
     # Create a shot
     sh1 = create_shot_scene(bpy.context.scene, 1, 1)
 
-    duration = sh1.frame_final_duration
+    duration = sh1.duration
     # Adjust duration from frame start with a positive offset going above strip's
     # scene frame start.
     offset = 1
     adjust_shot_duration(sh1, offset, from_frame_start=True)
 
     # Strip start frame should not have changed
-    assert sh1.frame_final_start == 1
+    assert sh1.left_handle == 1
     # Offset should have been clamped to stay in scene's range
-    assert sh1.frame_offset_start == 0
+    assert sh1.left_handle_offset == 0
     # Duration should not have changed
-    assert sh1.frame_final_duration == duration
+    assert sh1.duration == duration
 
 
 def test_shot_duration_adjust_with_multiple_shots():
     # Create a sequence with 3 shots following each others
     sh1 = create_shot_scene(bpy.context.scene, 1, bpy.context.scene.frame_start)
-    sh2 = create_shot_scene(bpy.context.scene, 1, sh1.frame_final_end)
-    sh3 = create_shot_scene(bpy.context.scene, 1, sh2.frame_final_end)
+    sh2 = create_shot_scene(bpy.context.scene, 1, sh1.right_handle)
+    sh3 = create_shot_scene(bpy.context.scene, 1, sh2.right_handle)
 
     # Retime the shot in between
-    sh2_original_frame_end = sh2.frame_final_end
+    sh2_original_frame_end = sh2.right_handle
     offset = 10
     adjust_shot_duration(sh2, offset)
 
     # 1st shot should not have been impacted
-    assert sh1.frame_final_start == bpy.context.scene.frame_start
+    assert sh1.left_handle == bpy.context.scene.frame_start
     # 2nd shot's duration should have changed
-    assert sh2.frame_final_end == sh2_original_frame_end + offset
+    assert sh2.right_handle == sh2_original_frame_end + offset
     # 3rd shot should have been shifted
-    assert sh3.frame_final_start == sh2.frame_final_end
+    assert sh3.left_handle == sh2.right_handle
 
 
 def test_shot_slip_content_positive_offset():
@@ -388,9 +388,9 @@ def test_shot_slip_content_positive_offset():
     slip_shot_content(sh2, offset)
 
     # Ensure strip frame_start members were propertly updated
-    assert sh2.frame_offset_start == sh1.frame_offset_start + offset
-    assert sh2.frame_start == sh1.frame_start - offset
-    assert sh2.frame_final_start == sh1.frame_final_start
+    assert sh2.left_handle_offset == sh1.left_handle_offset + offset
+    assert sh2.content_start == sh1.content_start - offset
+    assert sh2.left_handle == sh1.left_handle
 
 
 def test_shot_slip_content_negative_offset():
@@ -404,12 +404,12 @@ def test_shot_slip_content_negative_offset():
     # Strip's internal range start at internal frame start.
     # With clamp_start enabled, this sould not change anything.
     slip_shot_content(sh2, offset, clamp_start=True)
-    assert sh2.frame_offset_start == sh1.frame_offset_start
-    assert sh2.frame_start == sh1.frame_start
-    assert sh2.frame_final_start == sh1.frame_final_start
+    assert sh2.left_handle_offset == sh1.left_handle_offset
+    assert sh2.content_start == sh1.content_start
+    assert sh2.left_handle == sh1.left_handle
 
     # Without clamp, offset should have been applied
     slip_shot_content(sh2, offset, clamp_start=False)
-    assert sh2.frame_offset_start == sh1.frame_offset_start + offset
-    assert sh2.frame_start == sh1.frame_start - offset
-    assert sh2.frame_final_start == sh1.frame_final_start
+    assert sh2.left_handle_offset == sh1.left_handle_offset + offset
+    assert sh2.content_start == sh1.content_start - offset
+    assert sh2.left_handle == sh1.left_handle

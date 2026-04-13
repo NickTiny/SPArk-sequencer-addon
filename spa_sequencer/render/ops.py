@@ -93,7 +93,7 @@ class SEQUENCER_OT_batch_render(bpy.types.Operator):
         ]
 
         # Create render tasks
-        for seq in sorted(seqs, key=lambda x: x.frame_final_start):
+        for seq in sorted(seqs, key=lambda x: x.left_handle):
             self.tasks.append(StripRenderTask(strip=seq, is_modal=render_op_invoke))
 
         # Early return if output scene is not set.
@@ -109,7 +109,7 @@ class SEQUENCER_OT_batch_render(bpy.types.Operator):
                 and (seq.select or not self.render_options.selection_only)
             ]
             self.output_sound_strips = sorted(
-                sound_strips, key=lambda x: x.frame_final_start
+                sound_strips, key=lambda x: x.left_handle
             )
             if self.output_sound_strips:
                 self.tasks.append(
