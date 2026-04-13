@@ -166,8 +166,8 @@ class StripRenderTask(BaseRenderTask):
         scene = self.scene
 
         # Override scene's internal range to match strip's range.
-        frame_start = remap_frame_value(strip.frame_final_start, strip)
-        frame_end = frame_start + strip.frame_final_duration - 1
+        frame_start = remap_frame_value(strip.left_handle, strip)
+        frame_end = frame_start + strip.duration - 1
         # Apply frame handles to range.
         if render_options.media_type == "MOVIE":
             frame_start -= render_options.frames_handles
@@ -308,14 +308,14 @@ class StripRenderTask(BaseRenderTask):
         strips: list[tuple[bpy.types.SceneStrip, int, int]] = []
 
         if media_type == "IMAGES":
-            for idx in range(scene_strip.frame_final_duration):
+            for idx in range(scene_strip.duration):
                 frame_number = scene_strip.scene.frame_start + idx
                 img_path = scene_strip.scene.render.frame_path(frame=frame_number)
                 strip = sed.strips.new_image(
                     name=os.path.basename(bpy.path.abspath(img_path)),
                     filepath=img_path,
                     channel=scene_strip.channel + channel_offset,
-                    frame_start=scene_strip.frame_final_start + idx,
+                    frame_start=scene_strip.left_handle + idx,
                 )
                 strips.append((strip, frame_number, frame_number))
 
@@ -325,7 +325,7 @@ class StripRenderTask(BaseRenderTask):
                 name=os.path.basename(bpy.path.abspath(filepath)),
                 filepath=filepath,
                 channel=scene_strip.channel + channel_offset,
-                frame_start=scene_strip.frame_final_start,
+                frame_start=scene_strip.left_handle,
             )
 
             start_handle = frames_handles
@@ -335,13 +335,13 @@ class StripRenderTask(BaseRenderTask):
                 # This is done by getting the difference between:
                 #  the rendered clip duration
                 #  and the scene strip's duration + end frame handle's duration.
-                start_handle = strip.frame_duration - (
-                    scene_strip.frame_final_duration + frames_handles
+                start_handle = strip.content_duration - (
+                    scene_strip.duration + frames_handles
                 )
 
-            strip.frame_offset_start = start_handle
-            strip.frame_offset_end = frames_handles
-            strip.frame_start -= start_handle
+            strip.left_handle_offset = start_handle
+            strip.right_handle_offset = frames_handles
+            strip.content_start -= start_handle
             strips.append(
                 (strip, scene_strip.scene.frame_start, scene_strip.scene.frame_end)
             )
@@ -426,13 +426,13 @@ class CopySoundStripsTask(BaseTask):
         # To handle pasting such strips, make the copy happen at frame 0, and slide them
         # from the proper offset afterwards.
         self.overrides.set(self.dst_scene, "frame_current", 0)
-        frame_offset = self.sound_strips[0].frame_final_start
+        handle_offset = self.sound_strips[0].left_handle
 
         try:
             # Call paste operator with scene context override.
             with context.temp_override(**paste_op_ctx_override):
                 bpy.ops.sequencer.paste()
-                bpy.ops.transform.seq_slide(value=(frame_offset, 0))
+                bpy.ops.transform.seq_slide(value=(handle_offset, 0))
         finally:
             self.overrides.revert()
 
@@ -525,8 +525,8 @@ class SequenceRenderTask(BaseRenderTask):
             if isinstance(s, (bpy.types.MovieStrip, bpy.types.ImageStrip))
         ]
 
-        self.scene.frame_start = min(s.frame_final_start for s in sequences)
-        self.scene.frame_end = max(s.frame_final_end for s in sequences) - 1
+        self.scene.frame_start = min(s.left_handle for s in sequences)
+        self.scene.frame_end = max(s.right_handle for s in sequences) - 1
 
         # Filepath: add extension to avoid auto frame range suffix
         filepath += f".{file_ext}"

@@ -167,7 +167,7 @@ def remap_frame_value(frame: int, scene_strip: bpy.types.SceneStrip) -> int:
     :param scene_strip: The scene strip to remap to.
     :returns: The remapped frame value
     """
-    return int(frame - scene_strip.frame_start + scene_strip.scene.frame_start)
+    return int(frame - scene_strip.content_start + scene_strip.scene.frame_start)
 
 
 def get_strips_at_frame(
@@ -191,7 +191,7 @@ def get_strips_at_frame(
         if (
             (not type_filter or isinstance(s, type_filter))
             and (not skip_muted or not s.mute)
-            and (frame >= s.frame_final_start and frame < s.frame_final_end)
+            and (frame >= s.left_handle and frame < s.right_handle)
         )
     ]
 
@@ -400,8 +400,8 @@ def update_preview_range(scene_strip: bpy.types.SceneStrip):
         scene_strip.scene.use_preview_range = True
 
     # Compute and update preview range if necessary
-    start = remap_frame_value(scene_strip.frame_final_start, scene_strip)
-    end = remap_frame_value(scene_strip.frame_final_end, scene_strip) - 1
+    start = remap_frame_value(scene_strip.left_handle, scene_strip)
+    end = remap_frame_value(scene_strip.right_handle, scene_strip) - 1
     if start != scene_strip.scene.frame_preview_start:
         scene_strip.scene.frame_preview_start = start
     if end != scene_strip.scene.frame_preview_end:
@@ -486,12 +486,12 @@ def sync_system_update(context: bpy.types.Context, force: bool = False):
                 return
 
             # Compute strip range in scene's referential
-            frame_start = remap_frame_value(strip.frame_final_start, strip)
-            frame_end = remap_frame_value(strip.frame_final_end - 1, strip)
+            frame_start = remap_frame_value(strip.left_handle, strip)
+            frame_end = remap_frame_value(strip.right_handle - 1, strip)
 
             # Compute new strip range in current strip referential
-            new_strip_start = remap_frame_value(new_strip.frame_final_start, strip)
-            new_strip_end = remap_frame_value(new_strip.frame_final_end - 1, strip)
+            new_strip_start = remap_frame_value(new_strip.left_handle, strip)
+            new_strip_end = remap_frame_value(new_strip.right_handle - 1, strip)
 
             # If current frame is not consecutive to current strip boundary
             # or equal to one of the new strip's boundary,

@@ -107,7 +107,7 @@ class SEQUENCE_UL_shot(bpy.types.UIList):
         flt_neworder = []
 
         # Prepare data for sorting and perform sort
-        sort_data = [(idx, obj.frame_final_start) for idx, obj in enumerate(objects)]
+        sort_data = [(idx, obj.left_handle) for idx, obj in enumerate(objects)]
         flt_neworder = helper_funcs.sort_items_helper(sort_data, key=lambda obj: obj[1])
 
         return flt_flags, flt_neworder

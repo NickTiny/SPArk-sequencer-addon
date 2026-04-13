@@ -72,11 +72,11 @@ def sequencer_add_media_func(
             raise ValueError("Invalid track kind")
 
 
-def strip_apply_frame_offsets(
+def strip_apply_handle_offsets(
     strip: bpy.types.Strip,
-    frame_final_start: int,
-    frame_final_duration: int,
-    frame_start_offset: int,
+    left_handle: int,
+    duration: int,
+    left_handle_offset: int,
 ):
     """
     Apply strip external and internal offsets in the correct order to get
@@ -84,9 +84,9 @@ def strip_apply_frame_offsets(
     given values, without changing the strip's channel.
 
     :param strip: The strip to apply offsets to.
-    :param frame_final_start: The target final frame start.
-    :param frame_final_duration: The target final frame duration.
-    :param frame_start_offset: The target frame start offset.
+    :param left_handle: The target final frame start.
+    :param duration: The target final frame duration.
+    :param left_handle_offset: The target frame start offset.
     """
 
     # This requires this sequence of actions in this order
@@ -96,18 +96,18 @@ def strip_apply_frame_offsets(
     # 1. Restore "external" start/end properties.
     # NOTE: adjust frame end first to be compliant with Blender internal checks
     #       to avoid start > end.
-    final_frame_end = frame_final_start + frame_final_duration
-    strip.frame_final_end = final_frame_end
-    strip.frame_final_start = frame_final_start
+    final_frame_end = left_handle + duration
+    strip.right_handle = final_frame_end
+    strip.left_handle = left_handle
 
     # Blender might have moved the strip to another
     # channel to avoid overwrite - store this.
     auto_channel = strip.channel
     # 2. Apply strip "internal" offset.
-    strip.frame_start -= frame_start_offset
+    strip.content_start -= left_handle_offset
     # 3. Restore "external" properties again.
-    strip.frame_final_end = final_frame_end
-    strip.frame_final_start = frame_final_start
+    strip.right_handle = final_frame_end
+    strip.left_handle = left_handle
     # 4. Counter any change of channel from 3.
     #    by resetting the auto channel from 1.
     if strip.channel != auto_channel:

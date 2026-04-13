@@ -488,7 +488,7 @@ def reload_strip(strip: bpy.types.Strip):
 def adapt_scene_range(strip: bpy.types.SceneStrip):
     """Ensure `strip`'s internel range is fully contained in the scene its using."""
     # Update internal scene's end frame if exceeding the original one
-    new_frame_end = remap_frame_value(strip.frame_final_end - 1, strip)
+    new_frame_end = remap_frame_value(strip.right_handle - 1, strip)
     if new_frame_end <= strip.scene.frame_end:
         return
 
@@ -498,20 +498,20 @@ def adapt_scene_range(strip: bpy.types.SceneStrip):
 
 def adjust_shot_duration(
     strip: bpy.types.SceneStrip,
-    frame_offset: int,
+    handle_offset: int,
     from_frame_start: bool = False,
 ) -> bool:
     """
     Adjust the duration of `strip` and its underlying scene by offsetting either its end
-    or start frame (`from_frame_start` set to True) by `frame_offset`.
+    or start frame (`from_frame_start` set to True) by `handle_offset`.
     All strips on the same channel after `strip` are shifted accordingly.
 
-    Note that `frame_offset` is automatically clamped to:
+    Note that `handle_offset` is automatically clamped to:
     - ensure a minimum strip duration of 1
     - from frame start: stay in strip's scene range
 
     :param strip: The strip to adjust the duration of.
-    :param frame_offset: The frame offset to apply.
+    :param handle_offset: The frame offset to apply.
     :param from_frame_start: Whether to offset shot's inner start frame rather than its end frame.
     :return: Whether the function modified the duration of `strip`.
     """
@@ -519,21 +519,21 @@ def adjust_shot_duration(
         raise ValueError(f"Invalid shot: no scene set for '{strip.name}'")
 
     # Ensure the shot lasts at least 1 frame and compute effective offset
-    new_duration = max(strip.frame_final_duration + frame_offset, 1)
-    new_frame_offset = new_duration - strip.frame_final_duration
+    new_duration = max(strip.duration + handle_offset, 1)
+    new_handle_offset = new_duration - strip.duration
 
     # If adjusting from strip's frame start, clamp offset to never go beyond internal
     # scene's frame start.
     if from_frame_start:
         new_start_frame = max(
-            remap_frame_value(strip.frame_final_start, strip) - new_frame_offset,
+            remap_frame_value(strip.left_handle, strip) - new_handle_offset,
             strip.scene.frame_start,
         )
-        new_frame_offset = new_start_frame - remap_frame_value(
-            strip.frame_final_start, strip
+        new_handle_offset = new_start_frame - remap_frame_value(
+            strip.left_handle, strip
         )
 
-    if new_frame_offset == 0:
+    if new_handle_offset == 0:
         return False
 
     # Get sequence editor and scene from strip
@@ -545,10 +545,10 @@ def adjust_shot_duration(
         (
             s
             for s in sed.strips
-            if s.frame_final_start > strip.frame_final_start
+            if s.left_handle > strip.left_handle
             and s.channel == strip.channel
         ),
-        key=lambda s: s.frame_final_start,
+        key=lambda s: s.left_handle,
     )
     # Shift all impacted strips by offset.
     # Note: we adjust order of execution based on offset's sign to avoid
@@ -558,78 +558,78 @@ def adjust_shot_duration(
     #              strip's frame final start.
     if from_frame_start:
         # Positive offset: increase frame start => decrease strip duration
-        if new_frame_offset > 0:
+        if new_handle_offset > 0:
             # 1. Adjust strip values
-            strip.frame_offset_start += new_frame_offset
-            strip.frame_start -= new_frame_offset
+            strip.left_handle_offset += new_handle_offset
+            strip.content_start -= new_handle_offset
             # 2. Move impacted strips to the left
             for s in impacted_strips:
-                s.frame_start -= new_frame_offset
+                s.content_start -= new_handle_offset
         # Negative offset: decrease frame start => increase strip duration
         else:
             # 1. Move impacted strips to the right (reversed order)
             for s in reversed(impacted_strips):
-                s.frame_start -= new_frame_offset
+                s.content_start -= new_handle_offset
             # 2. Adjust strip values
-            strip.frame_start -= new_frame_offset
-            strip.frame_offset_start += new_frame_offset
+            strip.content_start -= new_handle_offset
+            strip.left_handle_offset += new_handle_offset
 
     # Frame end: shift scene and strip's final frame by offset.
     else:
         # Positive offset: increase frame end => increase duration
-        if new_frame_offset > 0:
+        if new_handle_offset > 0:
             # 1. Move impacted strips to the right (reversed order)
             for s in reversed(impacted_strips):
-                s.frame_start += new_frame_offset
+                s.content_start += new_handle_offset
             # 2. Adjust strip's duration
-            strip.frame_final_end += new_frame_offset
+            strip.right_handle += new_handle_offset
         # Negative offset: decrease frame end => decrease duration
         else:
             # 1. Adjust strip's duration
-            strip.frame_final_duration += new_frame_offset
+            strip.right_handle += new_handle_offset
             # 2. Move impacted strips to the left
             for s in impacted_strips:
-                s.frame_start += new_frame_offset
+                s.content_start += new_handle_offset
 
     adapt_scene_range(strip)
     return True
 
 
 def slip_shot_content(
-    strip: bpy.types.SceneStrip, frame_offset: int, clamp_start: bool = False
+    strip: bpy.types.SceneStrip, handle_offset: int, clamp_start: bool = False
 ):
     """
-    Slip `strip` content by `frame_offset`.
+    Slip `strip` content by `handle_offset`.
     A positive offset moves strip's internal range forwards.
 
     :param strip: The shot strip to consider.
-    :param frame_offset: The frame offset to apply.
+    :param handle_offset: The frame offset to apply.
     :param clamp_start: Whether to clamp to scene's frame start.
     """
     if clamp_start:
         # Clamp offset to never go beyond internal scene's frame start.
         new_start_frame = max(
-            remap_frame_value(strip.frame_final_start, strip) + frame_offset,
+            remap_frame_value(strip.left_handle, strip) + handle_offset,
             strip.scene.frame_start,
         )
 
-        new_frame_offset = new_start_frame - remap_frame_value(
-            strip.frame_final_start, strip
+        new_handle_offset = new_start_frame - remap_frame_value(
+            strip.left_handle, strip
         )
 
     else:
-        new_frame_offset = frame_offset
+        new_handle_offset = handle_offset
 
     # Store external values
-    frame_final_duration = strip.frame_final_duration
+    duration = strip.duration
     channel = strip.channel
     # Offset internal values to perform a content slip
-    strip.frame_offset_start += new_frame_offset
-    strip.frame_start -= new_frame_offset
-    strip.frame_offset_end -= new_frame_offset
+    strip.left_handle_offset += new_handle_offset
+    strip.content_start -= new_handle_offset
+    strip.right_handle_offset -= new_handle_offset
     # Ensure channel and duration are preserved
     strip.channel = channel
-    strip.frame_final_duration = frame_final_duration
+    set_shot_duration(strip, duration)
     adapt_scene_range(strip)
 
 
@@ -657,6 +657,13 @@ def get_scene_cameras(scene: bpy.types.Scene) -> list[bpy.types.Object]:
         key=lambda x: x.name,
     )
 
+
+def set_shot_duration(strip: bpy.types.Strip, duration:int):
+    """Set the Duration of a strip by adjusting it's handles
+      - [PR Comment](https://projects.blender.org/blender/blender/pulls/153012#issuecomment-1818253)
+      - [Release Notes](https://developer.blender.org/docs/release_notes/5.1/sequencer/#python-api)
+    """
+    strip.right_handle = strip.left_handle + duration
 
 def register():
     pass

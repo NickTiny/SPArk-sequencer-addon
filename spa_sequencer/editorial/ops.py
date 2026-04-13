@@ -7,7 +7,7 @@ import bpy
 
 
 from ..shot.naming import ShotNaming, ShotPrefix
-from ..shot.core import slip_shot_content
+from ..shot.core import slip_shot_content, set_shot_duration
 from ..utils import register_classes, unregister_classes, get_edit_scene
 
 from ..editorial.core import gather_strips_groups_by_regex
@@ -95,7 +95,7 @@ class SEQUENCER_OT_edit_conform_shots_from_panels(bpy.types.Operator):
         # Get list of strips from reference channel.
         ref_strips = sorted(
             [s for s in seq_editor.strips if s.channel == self.ref_channel],
-            key=lambda x: x.frame_final_start,
+            key=lambda x: x.left_handle,
         )
 
         # Build strip groups based on shot regex.
@@ -116,9 +116,9 @@ class SEQUENCER_OT_edit_conform_shots_from_panels(bpy.types.Operator):
                 group.frame_start,
             )
             # Match the duration of the whole group.
-            shot_strip.frame_final_duration = group.frame_duration
+            set_shot_duration(shot_strip, group.frame_duration)
             # Adjust internal offset to target the correct range within the strip's scene.
-            slip_shot_content(shot_strip, shot_strip.frame_final_start)
+            slip_shot_content(shot_strip, shot_strip.left_handle)
             # Assign active camera of the scene.
             shot_strip.scene_camera = shot_scene.camera
 
@@ -226,7 +226,7 @@ class SEQUENCER_OT_edit_conform_shots_from_editorial(bpy.types.Operator):
             frame_end = int(
                 strip.get(
                     STRIP_PROP_SOURCE_FRAME_END,
-                    (frame_start + strip.frame_duration - 1),
+                    (frame_start + strip.content_duration - 1),
                 )
             )
 
@@ -253,21 +253,21 @@ class SEQUENCER_OT_edit_conform_shots_from_editorial(bpy.types.Operator):
 
             # Create a new scene strip using extracted information.
             shot_strip = seq_editor.strips.new_scene(
-                shot_name, scene, self.target_channel, strip.frame_final_start
+                shot_name, scene, self.target_channel, strip.left_handle
             )
             shot_strip.scene_camera = camera
             # Adjust timing.
-            shot_strip.frame_final_duration = strip.frame_final_duration
-            shot_strip.frame_final_start = strip.frame_final_start
-            start_offset = frame_start + strip.frame_offset_start - 1
+            set_shot_duration(shot_strip, strip.duration)
+            shot_strip.left_handle = strip.left_handle
+            start_offset = frame_start + strip.left_handle_offset - 1
             slip_shot_content(shot_strip, start_offset)
 
             # Detect if shot is exceeding initial rendering range.
             if self.freeze_frame_handles_warning:
                 frame_start = remap_frame_value(
-                    shot_strip.frame_final_start, shot_strip
+                    shot_strip.left_handle, shot_strip
                 )
-                frame_end = remap_frame_value(shot_strip.frame_final_end, shot_strip)
+                frame_end = remap_frame_value(shot_strip.right_handle, shot_strip)
                 if frame_start < source_frame_start or frame_end > source_frame_end:
                     shot_strip.color_tag = "COLOR_02"
 
