@@ -75,6 +75,8 @@ class SEQUENCE_UL_shot(bpy.types.UIList):
     def draw_item(
         self, context, layout, data, item, icon, active_data, active_propname
     ):
+        if item.mute:
+            return
         row = layout.row(align=True)
         subrow = row.row()
 
@@ -149,7 +151,7 @@ class VIEW3D_PT_sequence(bpy.types.Panel):
             SEQUENCE_UL_shot.bl_idname,
             "",
             sed,
-            "strips",
+            "strips_all",
             context.window_manager.sequence_settings,
             "shot_active_index",
             type="DEFAULT",
