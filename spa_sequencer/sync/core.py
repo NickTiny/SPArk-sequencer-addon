@@ -198,7 +198,7 @@ def get_strips_at_frame(
 
 def get_scene_strip_at_frame(
     frame: int,
-    sequence_container: bpy.types.SequenceEditor|bpy.types.Strip,
+    sequence_container: bpy.types.SequenceEditor|bpy.types.MetaStrip,
     skip_muted: bool = True,
 ) -> tuple[Union[bpy.types.SceneStrip, None], int]:
     """
