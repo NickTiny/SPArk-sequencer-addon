@@ -6,6 +6,7 @@ import bpy
 from pytest import fixture
 
 from spa_sequencer.sync.core import remap_frame_value, get_sync_settings, set_grease_pencil_brush
+from spa_sequencer.shot.core import make_meta_strip
 
 from utils import create_shot_scene
 
@@ -332,3 +333,23 @@ def test_active_follows_playhead(basic_synced_setup):
 
     edit_scene.frame_set(shot_strip_2.left_handle)
     assert edit_scene.sequence_editor.active_strip == shot_strip_2
+
+
+def test_sync_nested_meta_strip(basic_synced_setup):
+    """Test sync resolves a scene strip nested 2 levels deep in meta strips."""
+    edit_scene, shot_strip_1 = basic_synced_setup
+    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.right_handle)
+
+    # Nest shot_strip_2 inside inner_meta, then inner_meta inside outer_meta
+    inner_meta = make_meta_strip([shot_strip_2], "INNER", shot_strip_2.left_handle, 1)
+    outer_meta = make_meta_strip([inner_meta], "OUTER", inner_meta.left_handle, 1)
+
+    bpy.context.window.scene = edit_scene
+
+    # Sync resolves the bare scene strip
+    edit_scene.frame_set(shot_strip_1.left_handle)
+    assert bpy.context.window.scene == shot_strip_1.scene
+
+    # Sync resolves through both meta strips to shot_strip_2's scene
+    edit_scene.frame_set(outer_meta.left_handle)
+    assert bpy.context.window.scene == shot_strip_2.scene
