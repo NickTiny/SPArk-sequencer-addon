@@ -378,7 +378,7 @@ def get_sync_master_strip(
 
     if use_cache:
         return (
-            master_scene.sequence_editor.strips.get(settings.last_master_strip),
+            master_scene.sequence_editor.strips_all.get(settings.last_master_strip),
             settings.last_strip_scene_frame,
         )
 
@@ -541,7 +541,7 @@ def sync_system_update(context: bpy.types.Context, force: bool = False):
 
     # Update cached values
     sync_settings.last_master_strip = strip.name
-    sync_settings.last_master_strip_idx = master_scene.sequence_editor.strips.find(
+    sync_settings.last_master_strip_idx = master_scene.sequence_editor.strips_all.find(
         strip.name
     )
     sync_settings.last_strip_scene_frame = inner_frame
