@@ -575,10 +575,21 @@ def sync_system_update(context: bpy.types.Context, force: bool = False):
             window.scene.camera = strip.scene_camera
 
     if sync_settings.active_follows_playhead:
-        if master_scene.sequence_editor.active_strip != strip:
-            master_scene.sequence_editor.active_strip = strip
+        # Only set root meta as active not child strips
+        # Checking recursively so metastrips behave same as scene strips
+        # TODO Performance concerns?
+        active_strip = recursively_find_root_parent_meta(strip)
+        if master_scene.sequence_editor.active_strip != active_strip:
+            master_scene.sequence_editor.active_strip = active_strip
 
 
+def recursively_find_root_parent_meta(strip: bpy.types.SceneStrip | bpy.types.MetaStrip) -> bpy.types.SceneStrip | bpy.types.MetaStrip:
+    """Find the parent meta strip that does not have any other parents."""
+    parent_meta = strip.parent_meta()
+    if not parent_meta:
+        return strip
+    return recursively_find_root_parent_meta(parent_meta)
+    
 @bpy.app.handlers.persistent
 def on_frame_changed(scene: bpy.types.Scene, depsgraph: bpy.types.Depsgraph):
     # Early return when context is still a restricted context
