@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2023, The SPA Studios. All rights reserved.
 
-from typing import Callable
+from typing import Callable, List
 
 import bpy
 
@@ -656,6 +656,15 @@ def get_scene_cameras(scene: bpy.types.Scene) -> list[bpy.types.Object]:
         (obj for obj in scene.objects if obj.type == "CAMERA"),
         key=lambda x: x.name,
     )
+
+
+def make_meta_strip(strips: List[bpy.types.SceneStrip], name:str, frame_start:int, channel:int) -> bpy.types.MetaStrip:
+    """Create Metastrip and populate it with given scene strips"""
+    sequence_editor = strips[0].id_data.sequence_editor
+    meta_strip : bpy.types.MetaStrip = sequence_editor.strips.new_meta(name=name, frame_start=frame_start, channel=channel)
+    for strip in strips:
+        strip.move_to_meta(meta_strip)
+    return meta_strip
 
 
 def register():
