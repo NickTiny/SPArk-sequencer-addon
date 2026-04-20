@@ -90,6 +90,7 @@ class SEQUENCER_OT_batch_render(bpy.types.Operator):
             for seq in self.scene.sequence_editor.strips
             if isinstance(seq, bpy.types.SceneStrip)
             and (seq.select or not self.render_options.selection_only)
+            and not seq.mute    
         ]
 
         # Create render tasks
