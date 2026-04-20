@@ -87,7 +87,7 @@ class SEQUENCER_OT_batch_render(bpy.types.Operator):
         # Select scene sequence strips to render
         seqs = [
             seq
-            for seq in self.scene.sequence_editor.strips
+            for seq in self.scene.sequence_editor.strips_all
             if isinstance(seq, bpy.types.SceneStrip)
             and (seq.select or not self.render_options.selection_only)
             and not seq.mute    
