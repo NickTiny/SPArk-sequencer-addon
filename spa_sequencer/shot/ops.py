@@ -12,6 +12,7 @@ from .core import (
     get_valid_shot_scenes,
     rename_scene,
     slip_shot_content,
+    set_active_audition_strip
 )
 from .naming import shot_naming, ShotNamingProperty
 from ..sync.core import (
@@ -856,23 +857,6 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
         # NOTE: for sequencer override, force update area display.
         context.area.tag_redraw()
         return {"FINISHED"}
-
-
-def set_active_audition_strip(
-    audition_strip: bpy.types.MetaStrip, active_strip: bpy.types.SceneStrip
-):
-    """Set the name of the active audition strip and adjust timeline accordingly"""
-    for strip in audition_strip.strips:
-        if strip != active_strip:
-            strip.mute = True
-        else:
-            strip.mute = False
-
-    if active_strip.right_handle != audition_strip.right_handle:
-        offset = active_strip.right_handle - audition_strip.right_handle
-        adjust_shot_duration(audition_strip, offset)
-    audition_strip.audition.active = active_strip.name
-    audition_strip.name = f"Active: {active_strip.name}"
 
 
 class SEQUENCER_OT_new_shot_audition(bpy.types.Operator):

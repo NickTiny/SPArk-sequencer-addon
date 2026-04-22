@@ -664,7 +664,6 @@ def get_scene_cameras(scene: bpy.types.Scene) -> list[bpy.types.Object]:
         key=lambda x: x.name,
     )
 
-
 def make_meta_strip(strips: List[bpy.types.SceneStrip], name:str, frame_start:int, channel:int) -> bpy.types.MetaStrip:
     """Create Metastrip and populate it with given scene strips"""
     sequence_editor = strips[0].id_data.sequence_editor
@@ -672,6 +671,41 @@ def make_meta_strip(strips: List[bpy.types.SceneStrip], name:str, frame_start:in
     for strip in strips:
         strip.move_to_meta(meta_strip)
     return meta_strip
+
+def set_active_audition_strip(
+    audition_strip: bpy.types.MetaStrip, active_strip: bpy.types.SceneStrip
+):
+    """Set the name of the active audition strip and adjust timeline accordingly"""
+    for strip in audition_strip.strips:
+        if strip != active_strip:
+            strip.mute = True
+        else:
+            strip.mute = False
+
+    if active_strip.right_handle != audition_strip.right_handle:
+        offset = active_strip.right_handle - audition_strip.right_handle
+        adjust_shot_duration(audition_strip, offset)
+    audition_strip.audition.active = active_strip.name
+    audition_strip.name = f"Active: {active_strip.name}"
+
+
+def set_active_audition_strip(
+    audition_strip: bpy.types.MetaStrip, active_strip: bpy.types.SceneStrip
+):
+    """Set the name of the active audition strip and adjust timeline accordingly"""
+    for strip in audition_strip.strips:
+        if strip != active_strip:
+            strip.mute = True
+        else:
+            strip.mute = False
+
+    if active_strip.right_handle != audition_strip.right_handle:
+        offset = active_strip.right_handle - audition_strip.right_handle
+        adjust_shot_duration(audition_strip, offset)
+    audition_strip.audition.active = active_strip.name
+    audition_strip.name = f"Active: {active_strip.name}"
+
+
 
 class AuditionStripProperties(bpy.types.PropertyGroup):
     """Audition Strip Properties."""
