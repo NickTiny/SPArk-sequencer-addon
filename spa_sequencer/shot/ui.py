@@ -4,7 +4,7 @@
 import bpy
 
 from ..utils import register_classes, unregister_classes
-
+from .ops import SEQUENCER_OT_new_shot_audition, SEQUENCER_OT_set_shot_audition
 
 class SEQUENCER_MT_shot_clean_up(bpy.types.Menu):
     """Shot clean-up menu"""
@@ -31,6 +31,8 @@ class SEQUENCER_MT_shot(bpy.types.Menu):
         layout.operator("sequencer.shot_duplicate")
         layout.operator("sequencer.shot_delete", text="Delete...")
         layout.separator()
+        layout.menu("SEQUENCER_MT_shot_audition")
+        layout.separator()
         layout.operator("sequencer.shot_rename", text="Rename...")
         layout.operator("sequencer.shot_timing_adjust")
         layout.separator()
@@ -42,9 +44,24 @@ def draw_MT_shot(self, context):
     layout.menu(SEQUENCER_MT_shot.bl_idname)
 
 
+class SEQUENCER_MT_shot_audition(bpy.types.Menu):
+    """Shot operators menu"""
+
+    bl_idname = "SEQUENCER_MT_shot_audition"
+    bl_label = "Audition"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(SEQUENCER_OT_new_shot_audition.bl_idname, text="New...")
+        layout.operator(SEQUENCER_OT_set_shot_audition.bl_idname, text="Set...")
+        layout.operator("sequencer.meta_separate", text="Remove...")
+        
+        
+
 classes = (
     SEQUENCER_MT_shot,
     SEQUENCER_MT_shot_clean_up,
+    SEQUENCER_MT_shot_audition,
 )
 
 
