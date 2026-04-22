@@ -499,12 +499,12 @@ def adapt_scene_range(strip: bpy.types.SceneStrip):
 
 
 def adjust_shot_duration(
-    strip: bpy.types.SceneStrip,
+    strip: bpy.types.Strip,
     handle_offset: int,
     from_frame_start: bool = False,
 ) -> bool:
     """
-    Adjust the duration of `strip` and its underlying scene by offsetting either its end
+    Adjust the duration of `strip` and its underlying scene (if avaliable) by offsetting either its end
     or start frame (`from_frame_start` set to True) by `handle_offset`.
     All strips on the same channel after `strip` are shifted accordingly.
 
@@ -514,10 +514,14 @@ def adjust_shot_duration(
 
     :param strip: The strip to adjust the duration of.
     :param handle_offset: The frame offset to apply.
-    :param from_frame_start: Whether to offset shot's inner start frame rather than its end frame.
+    :param from_frame_start: Whether to offset shot's inner start frame rather than its end frame. (strip must be ``bpy.types.SceneStrip``.)
     :return: Whether the function modified the duration of `strip`.
     """
-    if not strip.scene:
+    
+    if from_frame_start and not isinstance(strip, bpy.types.SceneStrip):
+        raise TypeError(f"Strip must be bpy.types.SceneStrip' if from_frame_start is True")
+    
+    if isinstance(strip, bpy.types.SceneStrip) and not strip.scene:
         raise ValueError(f"Invalid shot: no scene set for '{strip.name}'")
 
     # Ensure the shot lasts at least 1 frame and compute effective offset
@@ -592,8 +596,9 @@ def adjust_shot_duration(
             # 2. Move impacted strips to the left
             for s in impacted_strips:
                 s.content_start += new_handle_offset
-
-    adapt_scene_range(strip)
+                
+    if isinstance(strip, bpy.types.SceneStrip):
+        adapt_scene_range(strip)
     return True
 
 
