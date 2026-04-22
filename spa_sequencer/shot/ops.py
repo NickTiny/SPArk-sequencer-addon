@@ -18,7 +18,7 @@ from ..sync.core import (
     get_sync_master_strip,
     get_sync_settings,
     remap_frame_value,
-    sync_system_update
+    sync_system_update,
 )
 from ..utils import get_edit_scene, register_classes, unregister_classes
 
@@ -37,9 +37,7 @@ def get_last_used_frame(
     Get the last used internal frame of `scene` from the given list of `sequences`.
     """
     scene_sequences = [
-        s
-        for s in sequences
-        if isinstance(s, bpy.types.SceneStrip) and s.scene == scene
+        s for s in sequences if isinstance(s, bpy.types.SceneStrip) and s.scene == scene
     ]
 
     if not scene_sequences:
@@ -69,7 +67,7 @@ def ensure_sequencer_frame_visible(context: bpy.types.Context, frame: int):
     frame_coord = context.region.view2d.view_to_region(frame, 0, clip=False)[0]
     if frame_coord < 0 or frame_coord > context.region.width:
         edit_scene = get_edit_scene(context)
-        
+
         # Temp override current frame value and move view to frame.
         frame_old = edit_scene.frame_current
         edit_scene.frame_current = frame
@@ -119,7 +117,9 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
 
     def update_default_source_scene(self, context):
         if self.scene_mode == "EXISTING" and (
-            scene := getattr(get_edit_scene(context).sequence_editor.active_strip, "scene")
+            scene := getattr(
+                get_edit_scene(context).sequence_editor.active_strip, "scene"
+            )
         ):
             self.source_scene = scene.name
 
@@ -182,7 +182,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
 
     def invoke(self, context: bpy.types.Context, _event):
         edit_scene = get_edit_scene(context)
-        
+
         if not (sed := edit_scene.sequence_editor):
             self.name = shot_naming.default_shot_name()
         else:
@@ -205,9 +205,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
                 and ref_strip.type == "SCENE"
                 and self.source_scene == ref_strip.scene.name
             ):
-                self.start_3d = remap_frame_value(
-                    edit_scene.frame_current, ref_strip
-                )
+                self.start_3d = remap_frame_value(edit_scene.frame_current, ref_strip)
             elif source_scene:
                 self.start_3d = source_scene.frame_start
             else:
@@ -236,7 +234,9 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         if not self.validate_inputs(context):
             return {"CANCELLED"}
 
-        source_scene = bpy.data.scenes[self.source_scene] if self.scene_mode != "NEW" else None
+        source_scene = (
+            bpy.data.scenes[self.source_scene] if self.scene_mode != "NEW" else None
+        )
 
         if self.scene_mode != "NEW" and self.start_3d < source_scene.frame_start:
             self.report({"ERROR"}, "3D Start is not in the range of source scene")
@@ -255,11 +255,11 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         elif self.scene_mode == "NEW":
             # Create a new empty scene
             shot_scene = bpy.data.scenes.new(self.name)
-            
+
             # Set scene's frame range
             shot_scene.frame_start = 1
             shot_scene.frame_end = shot_scene.frame_start + self.duration - 1
-            
+
             # Create a camera for the new scene
             for i in range(1, 100000):
                 camera_name = f"Camera_{i:03d}"
@@ -269,11 +269,11 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             camera_obj = bpy.data.objects.new(name=camera_name, object_data=camera_data)
             shot_scene.collection.objects.link(camera_obj)
             shot_scene.camera = camera_obj
-            
+
             # Set a position for new camera
             camera_obj.location = (0, -10, 2)
             camera_obj.rotation_euler = (1.5708, 0, 0)  # 90 degrees on X axis
-            
+
             left_handle_offset = 0  # No offset for a new scene
         else:
             # Duplicate source scene.
@@ -298,9 +298,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         if self.scene_mode == "EXISTING":
             shot_scene.camera = source_scene.camera
 
-        edit_scene.frame_end = max(
-            new_strip.right_handle - 1, edit_scene.frame_end
-        )
+        edit_scene.frame_end = max(new_strip.right_handle - 1, edit_scene.frame_end)
 
         # Ensure newly created shot is visible.
         ensure_sequencer_frame_visible(context, new_strip.right_handle)
@@ -344,9 +342,7 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
         insert_frame = get_last_sequence(sed.strips).right_handle
 
         # Create new strip
-        new_strip = sed.strips.new_scene(
-            name, shot_scene, strip.channel, insert_frame
-        )
+        new_strip = sed.strips.new_scene(name, shot_scene, strip.channel, insert_frame)
 
         new_strip.duration = strip.duration
 
@@ -382,7 +378,7 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
         sed.active_strip = new_strips[0]
         for strip in new_strips:
             strip.select = True
-            
+
         edit_scene = get_edit_scene(context)
 
         edit_scene.frame_end = max(
@@ -514,7 +510,7 @@ class SEQUENCER_OT_shot_timing_adjust(bpy.types.Operator):
         context: bpy.types.Context,
     ) -> Optional[bpy.types.SceneStrip]:
         edit_scene = get_edit_scene(context)
-        
+
         if context.area.type == "DOPESHEET_EDITOR":
             strip = get_sync_master_strip(use_cache=True)[0]
             return strip if strip and strip.scene == context.window.scene else None
@@ -554,10 +550,7 @@ class SEQUENCER_OT_shot_timing_adjust(bpy.types.Operator):
         return {"RUNNING_MODAL"}
 
     def update_header_text(self, context, event):
-        text = (
-            f"Offset: {self.offset}"
-            f" | New Shot Duration: {self.strip.duration}"
-        )
+        text = f"Offset: {self.offset}" f" | New Shot Duration: {self.strip.duration}"
         context.area.header_text_set(text)
 
     def modal(self, context: bpy.types.Context, event: bpy.types.Event):
@@ -865,16 +858,18 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
         return {"FINISHED"}
 
 
-def set_active_audition_strip(audition_strip: bpy.types.MetaStrip, active_strip:bpy.types.SceneStrip):
+def set_active_audition_strip(
+    audition_strip: bpy.types.MetaStrip, active_strip: bpy.types.SceneStrip
+):
     """Set the name of the active audition strip and adjust timeline accordingly"""
     for strip in audition_strip.strips:
         if strip != active_strip:
             strip.mute = True
         else:
             strip.mute = False
-            
+
     if active_strip.right_handle != audition_strip.right_handle:
-        offset = active_strip.right_handle - audition_strip.right_handle 
+        offset = active_strip.right_handle - audition_strip.right_handle
         adjust_shot_duration(audition_strip, offset)
     audition_strip.audition.active = active_strip.name
     audition_strip.name = f"Active: {active_strip.name}"
@@ -883,83 +878,102 @@ def set_active_audition_strip(audition_strip: bpy.types.MetaStrip, active_strip:
 class SEQUENCER_OT_new_shot_audition(bpy.types.Operator):
     bl_idname = "sequencer.new_shot_audition"
     bl_label = "New Take Audition"
-    bl_description = "Create an audition to compare the selected strips as takes"
+    bl_description = (
+        "Create an audition to compare the selected strips as alternate takes"
+    )
     bl_options = {"REGISTER", "UNDO"}
-    
-    def execute(self, context: bpy.types.Context):   
+
+    @classmethod
+    def poll(cls, context):
+        strip = context.active_strip
+        if not strip:
+            cls.poll_message_set("No strip is selected")
+            return False
+
+        if strip.audition.is_audition:
+            cls.poll_message_set("Active strip is already an audition strip")
+            return False
+
+        if len(context.selected_strips) < 2:
+            cls.poll_message_set("Select two or more scene strips")
+            return False
+
+        return True
+
+    def execute(self, context: bpy.types.Context):
         for strip in context.selected_strips:
             if not isinstance(strip, bpy.types.SceneStrip):
-                self.report({"ERROR"}, "One or more selected strips are not scene strips")
+                self.report(
+                    {"ERROR"}, "One or more selected strips are not scene strips"
+                )
                 return {"CANCELLED"}
 
         left_handles = [strip.left_handle for strip in context.selected_strips]
         if not all(left_handle == left_handles[0] for left_handle in left_handles):
-            self.report({"ERROR"}, "All selected strips must share the same start frame")
+            self.report(
+                {"ERROR"}, "All selected strips must share the same start frame"
+            )
             return {"CANCELLED"}
 
-        active_scene_strip = context.selected_strips[0]
-        
+        # Use the longest strip as the active audition
+        active_scene_strip = max(
+            context.selected_strips,
+            key=lambda strip: strip.duration,
+        )
+
         bpy.ops.sequencer.meta_make()
         meta_strip = context.active_strip
+        meta_strip.audition.is_audition = True
         set_active_audition_strip(meta_strip, active_scene_strip)
-        return {"FINISHED"}        
+        return {"FINISHED"}
+
 
 class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
     bl_idname = "sequencer.set_shot_audition"
     bl_label = "Set Take Audition"
     bl_description = "Set Active Alternative Take in Audition Strip"
     bl_options = {"REGISTER", "UNDO"}
-    
-    # TODO Active follows playhead is causing conflicts here, as it is setting underlying sub-meta strips as active
-    # TODO Add time remapping (all clips start at same frame (should check) but end can vary)
+
     # TODO Register operator to UI
-    
-    def get_audition_strips_enum(self, context):
-        meta_strip : bpy.types.MetaStrip = context.active_strip
-        if not isinstance(meta_strip, bpy.types.MetaStrip):
-           return [("", "", "")]
-        return [(item.name, item.name, item.name) for item in meta_strip.strips]
-    
-    audition_strip_selector: bpy.props.EnumProperty( # type:ignore
-        name="Audition Strip Selector",
-        items=get_audition_strips_enum,
-        description="Select an Strip to set as Active Audition",    
-    )
-    
+
     @classmethod
     def poll(cls, context):
         strip = context.active_strip
-        if not isinstance(strip, bpy.types.MetaStrip):
-            cls.poll_message_set("Active strip must be metadata strip")
+        if not strip:
+            cls.poll_message_set("No strip is selected")
             return False
-        if strip.audition.active == "":
-            cls.poll_message_set("Active strip is not audition strip")
+
+        if not strip.audition.is_audition:
+            cls.poll_message_set("Active strip is not an audition strip")
             return False
         return True
-    
-    def invoke(self, context, event):
-        meta_strip : bpy.types.MetaStrip = context.active_strip
-        
-        if not isinstance(meta_strip, bpy.types.MetaStrip):
-            self.report({"ERROR", "Active strip must be metadata strip"})
-            return {"CANCELLED"}
-        
-        for strip in meta_strip.strips:
-            if not isinstance(strip, bpy.types.SceneStrip):
-                self.report({"ERROR", "One or more strips are not scene strips"})
-                return {"CANCELLED"}
 
+    def get_audition_strips_enum(self, context):
+        meta_strip: bpy.types.MetaStrip = context.active_strip
+        if not isinstance(meta_strip, bpy.types.MetaStrip):
+            return [("", "", "")]
+        return [(item.name, item.name, item.name) for item in meta_strip.strips]
+
+    audition_strip_selector: bpy.props.EnumProperty(  # type:ignore
+        name="Audition Strip Selector",
+        items=get_audition_strips_enum,
+        description="Select an Strip to set as Active Audition",
+    )
+
+    def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self, width=350)
-    
+
     def draw(self, context):
+        self.layout.label(text="Select scene strip to audition")
         self.layout.prop(self, "audition_strip_selector")
-    
-    def execute(self, context: bpy.types.Context):   
-        meta_strip : bpy.types.MetaStrip = context.active_strip
+
+    def execute(self, context: bpy.types.Context):
+        meta_strip: bpy.types.MetaStrip = context.active_strip
         set_strip = meta_strip.strips.get(self.audition_strip_selector)
         set_active_audition_strip(meta_strip, set_strip)
         sync_system_update(context, force=True)
-        return {"FINISHED"}     
+        return {"FINISHED"}
+
 
 classes = (
     SEQUENCER_OT_shot_new,
@@ -969,7 +983,7 @@ classes = (
     SEQUENCER_OT_shot_rename,
     SEQUENCER_OT_shot_chronological_numbering,
     SEQUENCER_OT_new_shot_audition,
-    SEQUENCER_OT_set_shot_audition
+    SEQUENCER_OT_set_shot_audition,
 )
 
 
