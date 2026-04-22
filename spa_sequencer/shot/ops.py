@@ -866,11 +866,16 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
 
 
 def set_active_audition_strip(audition_strip: bpy.types.MetaStrip, active_strip:bpy.types.SceneStrip):
+    """Set the name of the active audition strip and adjust timeline accordingly"""
     for strip in audition_strip.strips:
         if strip != active_strip:
             strip.mute = True
         else:
             strip.mute = False
+            
+    if active_strip.right_handle != audition_strip.right_handle:
+        offset = active_strip.right_handle - audition_strip.right_handle 
+        adjust_shot_duration(audition_strip, offset)
     audition_strip.audition.active = active_strip.name
     audition_strip.name = f"Active: {active_strip.name}"
 
@@ -884,8 +889,14 @@ class SEQUENCER_OT_new_shot_audition(bpy.types.Operator):
     def execute(self, context: bpy.types.Context):   
         for strip in context.selected_strips:
             if not isinstance(strip, bpy.types.SceneStrip):
-                self.report({"ERROR", "One or more selected strips are not scene strips"})
+                self.report({"ERROR"}, "One or more selected strips are not scene strips")
                 return {"CANCELLED"}
+
+        left_handles = [strip.left_handle for strip in context.selected_strips]
+        if not all(left_handle == left_handles[0] for left_handle in left_handles):
+            self.report({"ERROR"}, "All selected strips must share the same start frame")
+            return {"CANCELLED"}
+
         active_scene_strip = context.selected_strips[0]
         
         bpy.ops.sequencer.meta_make()
@@ -912,7 +923,7 @@ class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
     audition_strip_selector: bpy.props.EnumProperty( # type:ignore
         name="Audition Strip Selector",
         items=get_audition_strips_enum,
-        description="Select an Strip to set as Active Audition",
+        description="Select an Strip to set as Active Audition",    
     )
     
     @classmethod
