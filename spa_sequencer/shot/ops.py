@@ -864,7 +864,7 @@ class SEQUENCER_OT_new_shot_audition(bpy.types.Operator):
     bl_idname = "sequencer.new_shot_audition"
     bl_label = "New Take Audition"
     bl_description = (
-        "Create an audition to compare the selected strips as alternate takes"
+        "Create an audition to compare the selected shots as alternate takes"
     )
     bl_options = {"REGISTER", "UNDO"}
 
@@ -887,8 +887,8 @@ class SEQUENCER_OT_new_shot_audition(bpy.types.Operator):
 
 class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
     bl_idname = "sequencer.set_shot_audition"
-    bl_label = "Set Take Audition"
-    bl_description = "Set Active Alternative Take in Audition Strip"
+    bl_label = "Set Shot Audition"
+    bl_description = "Select Alternative Shot to use as Active Audition"
     bl_options = {"REGISTER", "UNDO"}
 
     # TODO Register operator to UI
@@ -912,16 +912,17 @@ class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
         return [(item.name, item.name, item.name) for item in meta_strip.strips]
 
     audition_strip_selector: bpy.props.EnumProperty(  # type:ignore
-        name="Audition Strip Selector",
+        name="Shot",
         items=get_audition_strips_enum,
-        description="Select an Strip to set as Active Audition",
+        description="Select a Shot to set as Active Audition",
     )
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self, width=350)
 
     def draw(self, context):
-        self.layout.label(text="Select scene strip to audition")
+        self.layout.use_property_split = True
+        self.layout.use_property_decorate = False
         self.layout.prop(self, "audition_strip_selector")
 
     def execute(self, context: bpy.types.Context):
