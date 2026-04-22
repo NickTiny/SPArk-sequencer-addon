@@ -11,6 +11,8 @@ from ..sync.core import (
     get_sync_settings,
     remap_frame_value,
 )
+from ..utils import register_classes, unregister_classes
+
 
 # Data structure to map source-to-duplicated datablock
 DuplicationManifest = dict[bpy.types.ID, bpy.types.ID]
@@ -666,10 +668,28 @@ def make_meta_strip(strips: List[bpy.types.SceneStrip], name:str, frame_start:in
         strip.move_to_meta(meta_strip)
     return meta_strip
 
+class AuditionStripProperties(bpy.types.PropertyGroup):
+    """Audition Strip Properties."""
+
+    active: bpy.props.StringProperty(
+        name="Active Audition Strip",
+        description="Audition the strip with this name as the current alternative take",
+        default="",
+    )
+
+classes = (AuditionStripProperties,)
+
 
 def register():
+    register_classes(classes)
+    bpy.types.Strip.audition = bpy.props.PointerProperty(
+        type=AuditionStripProperties,
+        name="Audition Strip Properties",
+    )
     pass
 
 
 def unregister():
-    pass
+    del bpy.types.Strip.audition
+    unregister_classes(classes)
+    

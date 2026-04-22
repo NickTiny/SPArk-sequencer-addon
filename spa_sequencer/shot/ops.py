@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2023, The SPA Studios. All rights reserved.
 
-from typing import Optional
+from typing import Optional, List
 
 import bpy
 from ..preferences import get_addon_prefs
@@ -18,6 +18,7 @@ from ..sync.core import (
     get_sync_master_strip,
     get_sync_settings,
     remap_frame_value,
+    sync_system_update
 )
 from ..utils import get_edit_scene, register_classes, unregister_classes
 
@@ -864,24 +865,90 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class SEQUENCER_OT_shot_audition(bpy.types.Operator):
-    bl_idname = "sequencer.shot_audition"
+def set_active_audition_strip(audition_strip: bpy.types.MetaStrip, active_strip:bpy.types.SceneStrip):
+    for strip in audition_strip.strips:
+        if strip != active_strip:
+            strip.mute = True
+        else:
+            strip.mute = False
+    audition_strip.audition.active = active_strip.name
+    audition_strip.name = f"Active: {active_strip.name}"
+
+
+class SEQUENCER_OT_new_shot_audition(bpy.types.Operator):
+    bl_idname = "sequencer.new_shot_audition"
     bl_label = "New Take Audition"
     bl_description = "Create an audition to compare the selected strips as takes"
     bl_options = {"REGISTER", "UNDO"}
     
-    def execute(self, context: bpy.types.Context):
-        selected_strips = [
-            strip
-            for strip in get_edit_scene(context).sequence_editor.strips
-            if isinstance(strip, bpy.types.SceneStrip) and
-            strip.select == True
-        ]
+    def execute(self, context: bpy.types.Context):   
+        for strip in context.selected_strips:
+            if not isinstance(strip, bpy.types.SceneStrip):
+                self.report({"ERROR", "One or more selected strips are not scene strips"})
+                return {"CANCELLED"}
+        active_scene_strip = context.selected_strips[0]
         
         bpy.ops.sequencer.meta_make()
         meta_strip = context.active_strip
-        meta_strip["audition_strip"] = selected_strips[0].name        
+        set_active_audition_strip(meta_strip, active_scene_strip)
         return {"FINISHED"}        
+
+class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
+    bl_idname = "sequencer.set_shot_audition"
+    bl_label = "Set Take Audition"
+    bl_description = "Set Active Alternative Take in Audition Strip"
+    bl_options = {"REGISTER", "UNDO"}
+    
+    # TODO Active follows playhead is causing conflicts here, as it is setting underlying sub-meta strips as active
+    # TODO Add time remapping (all clips start at same frame (should check) but end can vary)
+    # TODO Register operator to UI
+    
+    def get_audition_strips_enum(self, context):
+        meta_strip : bpy.types.MetaStrip = context.active_strip
+        if not isinstance(meta_strip, bpy.types.MetaStrip):
+           return [("", "", "")]
+        return [(item.name, item.name, item.name) for item in meta_strip.strips]
+    
+    audition_strip_selector: bpy.props.EnumProperty( # type:ignore
+        name="Audition Strip Selector",
+        items=get_audition_strips_enum,
+        description="Select an Strip to set as Active Audition",
+    )
+    
+    @classmethod
+    def poll(cls, context):
+        strip = context.active_strip
+        if not isinstance(strip, bpy.types.MetaStrip):
+            cls.poll_message_set("Active strip must be metadata strip")
+            return False
+        if strip.audition.active == "":
+            cls.poll_message_set("Active strip is not audition strip")
+            return False
+        return True
+    
+    def invoke(self, context, event):
+        meta_strip : bpy.types.MetaStrip = context.active_strip
+        
+        if not isinstance(meta_strip, bpy.types.MetaStrip):
+            self.report({"ERROR", "Active strip must be metadata strip"})
+            return {"CANCELLED"}
+        
+        for strip in meta_strip.strips:
+            if not isinstance(strip, bpy.types.SceneStrip):
+                self.report({"ERROR", "One or more strips are not scene strips"})
+                return {"CANCELLED"}
+
+        return context.window_manager.invoke_props_dialog(self, width=350)
+    
+    def draw(self, context):
+        self.layout.prop(self, "audition_strip_selector")
+    
+    def execute(self, context: bpy.types.Context):   
+        meta_strip : bpy.types.MetaStrip = context.active_strip
+        set_strip = meta_strip.strips.get(self.audition_strip_selector)
+        set_active_audition_strip(meta_strip, set_strip)
+        sync_system_update(context, force=True)
+        return {"FINISHED"}     
 
 classes = (
     SEQUENCER_OT_shot_new,
@@ -890,7 +957,8 @@ classes = (
     SEQUENCER_OT_shot_timing_adjust,
     SEQUENCER_OT_shot_rename,
     SEQUENCER_OT_shot_chronological_numbering,
-    SEQUENCER_OT_shot_audition
+    SEQUENCER_OT_new_shot_audition,
+    SEQUENCER_OT_set_shot_audition
 )
 
 
