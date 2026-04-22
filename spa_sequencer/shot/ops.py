@@ -12,7 +12,8 @@ from .core import (
     get_valid_shot_scenes,
     rename_scene,
     slip_shot_content,
-    set_active_audition_strip
+    new_audition_strip,
+    set_active_audition
 )
 from .naming import shot_naming, ShotNamingProperty
 from ..sync.core import (
@@ -869,15 +870,6 @@ class SEQUENCER_OT_new_shot_audition(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        strip = context.active_strip
-        if not strip:
-            cls.poll_message_set("No strip is selected")
-            return False
-
-        if strip.audition.is_audition:
-            cls.poll_message_set("Active strip is already an audition strip")
-            return False
-
         if len(context.selected_strips) < 2:
             cls.poll_message_set("Select two or more scene strips")
             return False
@@ -885,30 +877,11 @@ class SEQUENCER_OT_new_shot_audition(bpy.types.Operator):
         return True
 
     def execute(self, context: bpy.types.Context):
-        for strip in context.selected_strips:
-            if not isinstance(strip, bpy.types.SceneStrip):
-                self.report(
-                    {"ERROR"}, "One or more selected strips are not scene strips"
-                )
-                return {"CANCELLED"}
-
-        left_handles = [strip.left_handle for strip in context.selected_strips]
-        if not all(left_handle == left_handles[0] for left_handle in left_handles):
-            self.report(
-                {"ERROR"}, "All selected strips must share the same start frame"
-            )
+        try:
+            new_audition_strip(context, context.selected_strips)
+        except Exception as e:
+            self.report({"ERROR"}, str(e))
             return {"CANCELLED"}
-
-        # Use the longest strip as the active audition
-        active_scene_strip = max(
-            context.selected_strips,
-            key=lambda strip: strip.duration,
-        )
-
-        bpy.ops.sequencer.meta_make()
-        meta_strip = context.active_strip
-        meta_strip.audition.is_audition = True
-        set_active_audition_strip(meta_strip, active_scene_strip)
         return {"FINISHED"}
 
 
@@ -954,8 +927,12 @@ class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
     def execute(self, context: bpy.types.Context):
         meta_strip: bpy.types.MetaStrip = context.active_strip
         set_strip = meta_strip.strips.get(self.audition_strip_selector)
-        set_active_audition_strip(meta_strip, set_strip)
-        sync_system_update(context, force=True)
+        
+        try:
+            set_active_audition(context, meta_strip, set_strip)
+        except Exception as e:
+            self.report({"ERROR"}, str(e))
+            return {"CANCELLED"}
         return {"FINISHED"}
 
 

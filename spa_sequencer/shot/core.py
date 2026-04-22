@@ -10,6 +10,7 @@ from ..preferences import get_addon_prefs
 from ..sync.core import (
     get_sync_settings,
     remap_frame_value,
+    sync_system_update
 )
 from ..utils import register_classes, unregister_classes
 
@@ -672,8 +673,36 @@ def make_meta_strip(strips: List[bpy.types.SceneStrip], name:str, frame_start:in
         strip.move_to_meta(meta_strip)
     return meta_strip
 
-def set_active_audition_strip(
-    audition_strip: bpy.types.MetaStrip, active_strip: bpy.types.SceneStrip
+def make_meta_strip(strips: List[bpy.types.SceneStrip], name:str, frame_start:int, channel:int) -> bpy.types.MetaStrip:
+    """Create Metastrip and populate it with given scene strips"""
+    sequence_editor = strips[0].id_data.sequence_editor
+    meta_strip : bpy.types.MetaStrip = sequence_editor.strips.new_meta(name=name, frame_start=frame_start, channel=channel)
+    for strip in strips:
+        strip.move_to_meta(meta_strip)
+    return meta_strip
+
+def new_audition_strip(context:bpy.types, strips: List[bpy.types.SceneStrip]):
+    if not all(isinstance(s, bpy.types.SceneStrip) for s in strips):
+        raise TypeError("One or more selected strips are not scene strips")
+
+    left_handles = [strip.left_handle for strip in strips]
+    if not all(lh == left_handles[0] for lh in left_handles):
+        raise ValueError("All selected strips must share the same start frame")
+
+    # Use the longest strip as the active audition (ensyure new meta won't ovewrite anything)
+    active_strip = max(
+        strips,
+        key=lambda strip: strip.duration,
+    )
+    
+    # Create meta strip and move selected strips into it
+    meta_strip = make_meta_strip(strips, active_strip.name, active_strip.left_handle, active_strip.channel)
+    # meta_strip.right_handle = active_strip.right_handle
+    meta_strip.audition.is_audition = True
+    set_active_audition(context, meta_strip, active_strip)
+
+def set_active_audition(
+    context:bpy.types.Context, audition_strip: bpy.types.MetaStrip, active_strip: bpy.types.SceneStrip
 ):
     """Set the name of the active audition strip and adjust timeline accordingly"""
     for strip in audition_strip.strips:
@@ -687,6 +716,7 @@ def set_active_audition_strip(
         adjust_shot_duration(audition_strip, offset)
     audition_strip.audition.active = active_strip.name
     audition_strip.name = f"Active: {active_strip.name}"
+    sync_system_update(context, force=True)
 
 
 def set_active_audition_strip(
