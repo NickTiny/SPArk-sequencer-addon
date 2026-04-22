@@ -864,6 +864,25 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class SEQUENCER_OT_shot_audition(bpy.types.Operator):
+    bl_idname = "sequencer.shot_audition"
+    bl_label = "New Take Audition"
+    bl_description = "Create an audition to compare the selected strips as takes"
+    bl_options = {"REGISTER", "UNDO"}
+    
+    def execute(self, context: bpy.types.Context):
+        selected_strips = [
+            strip
+            for strip in get_edit_scene(context).sequence_editor.strips
+            if isinstance(strip, bpy.types.SceneStrip) and
+            strip.select == True
+        ]
+        
+        bpy.ops.sequencer.meta_make()
+        meta_strip = context.active_strip
+        meta_strip["audition_strip"] = selected_strips[0].name        
+        return {"FINISHED"}        
+
 classes = (
     SEQUENCER_OT_shot_new,
     SEQUENCER_OT_shot_duplicate,
@@ -871,6 +890,7 @@ classes = (
     SEQUENCER_OT_shot_timing_adjust,
     SEQUENCER_OT_shot_rename,
     SEQUENCER_OT_shot_chronological_numbering,
+    SEQUENCER_OT_shot_audition
 )
 
 
