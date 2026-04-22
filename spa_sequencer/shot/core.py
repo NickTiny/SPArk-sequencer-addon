@@ -694,6 +694,19 @@ def new_audition_strip(context:bpy.types, strips: List[bpy.types.SceneStrip]):
     meta_strip.audition.is_audition = True
     set_active_audition(context, meta_strip, active_strip)
 
+def get_audition_strip(strip:bpy.types.Strip) -> bpy.types.MetaStrip|None:
+    """From either the strip itself or it's parent meta, find the audition strip
+    containing the current strip."""
+    if strip is None:
+        return
+    
+    if isinstance(strip, bpy.types.MetaStrip) and strip.audition.is_audition:
+        return strip
+    
+    parent_strip = get_audition_strip(strip.parent_meta())
+    if parent_strip:
+        return parent_strip
+    
 def set_active_audition(
     context:bpy.types.Context, audition_strip: bpy.types.MetaStrip, active_strip: bpy.types.SceneStrip
 ):

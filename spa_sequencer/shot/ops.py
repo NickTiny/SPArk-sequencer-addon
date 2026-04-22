@@ -13,6 +13,7 @@ from .core import (
     rename_scene,
     slip_shot_content,
     new_audition_strip,
+    get_audition_strip,
     set_active_audition
 )
 from .naming import shot_naming, ShotNamingProperty
@@ -897,8 +898,6 @@ class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
     bl_description = "Select Alternative Shot to use as Active Audition"
     bl_options = {"REGISTER", "UNDO"}
 
-    # TODO Register operator to UI
-
     @classmethod
     def poll(cls, context):
         strip = context.active_strip
@@ -906,16 +905,17 @@ class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
             cls.poll_message_set("No strip is selected")
             return False
 
-        if not strip.audition.is_audition:
+        audition_strip = get_audition_strip(strip)
+        if not audition_strip:
             cls.poll_message_set("Active strip is not an audition strip")
             return False
         return True
 
     def get_audition_strips_enum(self, context):
-        meta_strip: bpy.types.MetaStrip = context.active_strip
-        if not isinstance(meta_strip, bpy.types.MetaStrip):
+        audition_strip = get_audition_strip(context.active_strip)
+        if not audition_strip:
             return [("", "", "")]
-        return [(item.name, item.name, item.name) for item in meta_strip.strips]
+        return [(item.name, item.name, item.name) for item in audition_strip.strips]
 
     audition_strip_selector: bpy.props.EnumProperty(  # type:ignore
         name="Shot",
@@ -932,11 +932,11 @@ class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
         self.layout.prop(self, "audition_strip_selector")
 
     def execute(self, context: bpy.types.Context):
-        meta_strip: bpy.types.MetaStrip = context.active_strip
-        set_strip = meta_strip.strips.get(self.audition_strip_selector)
+        audition_strip = get_audition_strip(context.active_strip)
+        set_strip = audition_strip.strips.get(self.audition_strip_selector)
         
         try:
-            set_active_audition(context, meta_strip, set_strip)
+            set_active_audition(context, audition_strip, set_strip)
         except Exception as e:
             self.report({"ERROR"}, str(e))
             return {"CANCELLED"}
