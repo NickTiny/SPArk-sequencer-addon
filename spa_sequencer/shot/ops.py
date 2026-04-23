@@ -14,7 +14,8 @@ from .core import (
     slip_shot_content,
     new_audition_strip,
     get_audition_strip,
-    set_active_audition
+    set_active_audition,
+    get_strip_container
 )
 from .naming import shot_naming, ShotNamingProperty
 from ..sync.core import (
@@ -245,7 +246,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             return {"CANCELLED"}
 
         edit_scene = get_edit_scene(context)
-        sequences = edit_scene.sequence_editor.strips
+        sequences = get_strip_container(edit_scene.sequence_editor).strips
         left_handle_offset = 0
 
         # Source scene handling.
@@ -336,17 +337,17 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
         name: str,
         duplicate_scene: bool,
     ) -> bpy.types.SceneStrip:
-        sed = strip.id_data.sequence_editor
+        strip_container = get_strip_container(strip.id_data.sequence_editor)
         if duplicate_scene:
             shot_scene = duplicate_scene(context, strip.scene, name)
         else:
             shot_scene = strip.scene
 
         # Find the frame where to insert the duplicated strip
-        insert_frame = get_last_sequence(sed.strips).right_handle
+        insert_frame = get_last_sequence(strip_container.strips).right_handle
 
         # Create new strip
-        new_strip = sed.strips.new_scene(
+        new_strip = strip_container.strips.new_scene(
             name, shot_scene, strip.channel, insert_frame
         )
 
@@ -354,7 +355,7 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
 
         if not duplicate_scene:
             new_strip.scene_camera = strip.scene_camera
-            handle_offset = get_last_used_frame(sed.strips, shot_scene)
+            handle_offset = get_last_used_frame(strip_container.strips, shot_scene)
             slip_shot_content(new_strip, handle_offset)
         else:
             new_strip.scene_camera = strip.scene.camera
@@ -364,10 +365,12 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
     def execute(self, context: bpy.types.Context):
         edit_scene = get_edit_scene(context)
         sed = edit_scene.sequence_editor
+        strip_container = get_strip_container(edit_scene.sequence_editor)
+
 
         new_strips = []
-        for strip in get_selected_scene_sequences(sed.strips):
-            name = shot_naming.next_shot_name_from_sequences(sed)
+        for strip in get_selected_scene_sequences(strip_container.strips):
+            name = shot_naming.next_shot_name_from_sequences(strip_container)
             new_strip = self.duplicate_shot(context, strip, name, self.duplicate_scene)
             new_strips.append(new_strip)
 
