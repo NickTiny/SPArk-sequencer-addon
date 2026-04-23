@@ -228,6 +228,8 @@ def get_scene_strip_at_frame(
     
     if isinstance(strip, bpy.types.MetaStrip):
         strip, frame = get_scene_strip_at_frame(frame, strip, skip_muted)
+        if not strip:
+            return None, frame
 
     # Help type checking: strip can only be a SceneStrip here
     assert isinstance(strip, bpy.types.SceneStrip)
