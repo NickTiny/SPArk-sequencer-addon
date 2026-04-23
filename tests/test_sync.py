@@ -335,8 +335,8 @@ def test_active_follows_playhead(basic_synced_setup):
     assert edit_scene.sequence_editor.active_strip == shot_strip_2
 
 
-def test_sync_nested_meta_strip(basic_synced_setup):
-    """Test sync resolves a scene strip nested 2 levels deep in meta strips."""
+def test_sync_meta_strip(basic_synced_setup):
+    """Test that sync resolves scene and frame correctly through nested meta strips."""
     edit_scene, shot_strip_1 = basic_synced_setup
     shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.right_handle)
 
@@ -345,11 +345,15 @@ def test_sync_nested_meta_strip(basic_synced_setup):
     outer_meta = make_meta_strip([inner_meta], "OUTER", inner_meta.left_handle, 1)
 
     bpy.context.window.scene = edit_scene
+    edit_scene.frame_set(0)
 
     # Sync resolves the bare scene strip
-    edit_scene.frame_set(shot_strip_1.left_handle)
+    edit_frame = shot_strip_1.left_handle
+    edit_scene.frame_set(edit_frame)
     assert bpy.context.window.scene == shot_strip_1.scene
-
+    assert shot_strip_1.scene.frame_current == remap_frame_value(edit_frame, shot_strip_1)
     # Sync resolves through both meta strips to shot_strip_2's scene
-    edit_scene.frame_set(outer_meta.left_handle)
+    edit_frame = outer_meta.left_handle
+    edit_scene.frame_set(edit_frame)
     assert bpy.context.window.scene == shot_strip_2.scene
+    assert shot_strip_2.scene.frame_current == remap_frame_value(edit_frame, shot_strip_2)

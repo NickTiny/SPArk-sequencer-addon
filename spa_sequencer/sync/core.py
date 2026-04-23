@@ -227,7 +227,8 @@ def get_scene_strip_at_frame(
     strip = sorted(strips, key=lambda x: x.channel)[-1]
     
     if isinstance(strip, bpy.types.MetaStrip):
-        strip, frame = get_scene_strip_at_frame(frame, strip, skip_muted)
+        # If we carry the frame value here we are recursively calling remap_frame_value
+        strip, _ = get_scene_strip_at_frame(frame, strip, skip_muted)
         if not strip:
             return None, frame
 
