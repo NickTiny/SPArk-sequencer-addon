@@ -57,7 +57,7 @@ class SEQUENCER_MT_shot_audition_set(bpy.types.Menu):
         if not audition_strip:
             layout.label(text="No Active Audition Group")
             return
-        for strip in audition_strip.strips:
+        for strip in sorted(audition_strip.strips, key=lambda s: s.name):
             row = layout.row()
             row.operator_context = "EXEC_DEFAULT"
             row.operator(SEQUENCER_OT_set_shot_audition.bl_idname, text=strip.name).audition_strip_selector = strip.name
