@@ -880,6 +880,8 @@ class SEQUENCER_OT_new_shot_audition(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        if context.sequencer_scene is None:
+            return False
         if len(context.selected_strips) < 2:
             cls.poll_message_set("Select two or more scene strips")
             return False
