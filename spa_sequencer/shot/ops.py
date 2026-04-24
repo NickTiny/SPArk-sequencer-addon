@@ -903,6 +903,14 @@ class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
     bl_description = "Select Shot from Audition Group to set as Active"
     bl_options = {"REGISTER", "UNDO"}
 
+    bl_keymaps_defaults = {
+        "space_type": "SEQUENCE_EDITOR",
+        "category_name": "Sequencer",
+    }
+    bl_keymaps = [
+        {"key": "A", "ctrl": True, "properties": {"cycle": True}},
+    ]
+
     @classmethod
     def poll(cls, context):
         strip = context.active_strip
@@ -917,7 +925,7 @@ class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
         return True
 
     def get_audition_strips_enum(self, context):
-        audition_strip = get_audition_strip(context.active_strip)
+        audition_strip = get_audition_strip(bpy.context.active_strip)
         if not audition_strip:
             return [("", "", "")]
         return [(item.name, item.name, item.name) for item in audition_strip.strips]
@@ -928,7 +936,15 @@ class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
         description="Select a Shot to set as Active Audition",
     )
 
+    cycle: bpy.props.BoolProperty(  # type:ignore
+        name="Cycle",
+        description="Cycle to the next strip in the audition group",
+        default=False,
+    )
+
     def invoke(self, context, event):
+        if self.cycle:
+            return self.execute(context)
         return context.window_manager.invoke_props_dialog(self, width=350)
 
     def draw(self, context):
@@ -938,8 +954,17 @@ class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
 
     def execute(self, context: bpy.types.Context):
         audition_strip = get_audition_strip(context.active_strip)
+
+        if self.cycle:
+            strips = list(audition_strip.strips)
+            current_name = audition_strip.audition.active
+            current_idx = next(
+                (i for i, s in enumerate(strips) if s.name == current_name), -1
+            )
+            self.audition_strip_selector = strips[(current_idx + 1) % len(strips)].name
+            # Required for redo panel to function correctly
+            self.cycle = False
         set_strip = audition_strip.strips.get(self.audition_strip_selector)
-        
         try:
             set_active_audition(context, audition_strip, set_strip)
         except Exception as e:
