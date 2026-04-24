@@ -351,9 +351,13 @@ def test_sync_meta_strip(basic_synced_setup):
     edit_frame = shot_strip_1.left_handle
     edit_scene.frame_set(edit_frame)
     assert bpy.context.window.scene == shot_strip_1.scene
-    assert shot_strip_1.scene.frame_current == remap_frame_value(edit_frame, shot_strip_1)
+    assert shot_strip_1.scene.frame_current == remap_frame_value(
+        edit_frame, shot_strip_1
+    )
     # Sync resolves through both meta strips to shot_strip_2's scene
     edit_frame = outer_meta.left_handle
     edit_scene.frame_set(edit_frame)
     assert bpy.context.window.scene == shot_strip_2.scene
-    assert shot_strip_2.scene.frame_current == remap_frame_value(edit_frame, shot_strip_2)
+    assert shot_strip_2.scene.frame_current == remap_frame_value(
+        edit_frame, shot_strip_2
+    )

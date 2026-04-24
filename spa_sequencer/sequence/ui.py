@@ -101,7 +101,11 @@ class SEQUENCE_UL_shot(bpy.types.UIList):
 
         # Keep only scene strips.
         flt_flags = [
-            self.bitflag_filter_item if isinstance(obj, bpy.types.SceneStrip) and not obj.mute else 0
+            (
+                self.bitflag_filter_item
+                if isinstance(obj, bpy.types.SceneStrip) and not obj.mute
+                else 0
+            )
             for obj in objects
         ]
         flt_neworder = []

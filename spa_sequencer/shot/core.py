@@ -657,17 +657,25 @@ def get_scene_cameras(scene: bpy.types.Scene) -> list[bpy.types.Object]:
         key=lambda x: x.name,
     )
 
-def get_strip_container(sequence_editor:bpy.types.SequenceEditor) ->bpy.types.SequenceEditor|bpy.types.MetaStrip:
+
+def get_strip_container(
+    sequence_editor: bpy.types.SequenceEditor,
+) -> bpy.types.SequenceEditor | bpy.types.MetaStrip:
     """Returns either the current sequence editor or the current metastrip
     if the metastrip is currently being displayed in the sequence editor."""
     if len(sequence_editor.meta_stack) == 0:
         return sequence_editor
     return sequence_editor.meta_stack[-1]
 
-def make_meta_strip(strips: List[bpy.types.SceneStrip], name:str, frame_start:int, channel:int) -> bpy.types.MetaStrip:
+
+def make_meta_strip(
+    strips: List[bpy.types.SceneStrip], name: str, frame_start: int, channel: int
+) -> bpy.types.MetaStrip:
     """Create Metastrip and populate it with given scene strips"""
     sequence_editor = strips[0].id_data.sequence_editor
-    meta_strip : bpy.types.MetaStrip = sequence_editor.strips.new_meta(name=name, frame_start=frame_start, channel=channel)
+    meta_strip: bpy.types.MetaStrip = sequence_editor.strips.new_meta(
+        name=name, frame_start=frame_start, channel=channel
+    )
     for strip in strips:
         strip.move_to_meta(meta_strip)
     return meta_strip
