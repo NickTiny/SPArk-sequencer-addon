@@ -696,7 +696,7 @@ def new_audition_strip(context:bpy.types, strips: List[bpy.types.SceneStrip]):
     
     # Create meta strip and move selected strips into it
     meta_strip = make_meta_strip(strips, active_strip.name, active_strip.left_handle, active_strip.channel)
-    # meta_strip.right_handle = active_strip.right_handle
+    meta_strip.right_handle = active_strip.right_handle
     meta_strip.audition.is_audition = True
     set_active_audition(context, meta_strip, active_strip)
 
@@ -755,6 +755,7 @@ def register():
         type=AuditionStripProperties,
         name="Audition Strip Properties",
     )
+    pass
 
 
 def unregister():
