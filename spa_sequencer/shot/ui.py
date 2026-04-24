@@ -55,7 +55,7 @@ class SEQUENCER_MT_shot_audition_set(bpy.types.Menu):
         layout = self.layout
         audition_strip = get_audition_strip(context.active_strip)
         if not audition_strip:
-            layout.label("No Active Audition Group")
+            layout.label(text="No Active Audition Group")
             return
         for strip in audition_strip.strips:
             row = layout.row()
