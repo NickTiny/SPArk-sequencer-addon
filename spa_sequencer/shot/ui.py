@@ -52,9 +52,9 @@ class SEQUENCER_MT_shot_audition(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(SEQUENCER_OT_new_shot_audition.bl_idname, text="New...")
-        layout.operator(SEQUENCER_OT_set_shot_audition.bl_idname, text="Set...")
-        layout.operator("sequencer.meta_separate", text="Remove...")
+        layout.operator(SEQUENCER_OT_new_shot_audition.bl_idname, text="Make Group")
+        layout.operator(SEQUENCER_OT_set_shot_audition.bl_idname, text="Set Active")
+        layout.operator("sequencer.meta_separate", text="Ungroup")
         
         
 

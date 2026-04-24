@@ -872,9 +872,9 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
 
 class SEQUENCER_OT_new_shot_audition(bpy.types.Operator):
     bl_idname = "sequencer.new_shot_audition"
-    bl_label = "New Take Audition"
+    bl_label = "New Audition Group"
     bl_description = (
-        "Create an audition to compare the selected shots as alternate takes"
+        "Create an audition group to compare the selected shots"
     )
     bl_options = {"REGISTER", "UNDO"}
 
@@ -899,8 +899,8 @@ class SEQUENCER_OT_new_shot_audition(bpy.types.Operator):
 
 class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
     bl_idname = "sequencer.set_shot_audition"
-    bl_label = "Set Shot Audition"
-    bl_description = "Select Alternative Shot to use as Active Audition"
+    bl_label = "Set Active Audition"
+    bl_description = "Select Shot from Audition Group to set as Active"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
