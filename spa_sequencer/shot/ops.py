@@ -897,19 +897,30 @@ class SEQUENCER_OT_new_shot_audition(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
-    bl_idname = "sequencer.set_shot_audition"
-    bl_label = "Set Active Audition"
-    bl_description = "Select Shot from Audition Group to set as Active"
-    bl_options = {"REGISTER", "UNDO"}
+class SEQUENCER_OT_shot_audition_set_menu(bpy.types.Operator):
+    bl_idname = "sequencer.shot_audition_set_menu"
+    bl_label = "Shot Audition Set Menu"
+    bl_description = "Open the audition set menu"
+    bl_options = {"REGISTER"}
 
     bl_keymaps_defaults = {
         "space_type": "SEQUENCE_EDITOR",
         "category_name": "Sequencer",
     }
     bl_keymaps = [
-        {"key": "A", "ctrl": True, "properties": {"cycle": True}},
+        {"key": "A", "ctrl": True},
     ]
+
+    def execute(self, context: bpy.types.Context):
+        bpy.ops.wm.call_menu(name="SEQUENCER_MT_shot_audition_set")
+        return {"FINISHED"}
+
+
+class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
+    bl_idname = "sequencer.set_shot_audition"
+    bl_label = "Set Active Audition"
+    bl_description = "Select Shot from Audition Group to set as Active"
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -981,6 +992,7 @@ classes = (
     SEQUENCER_OT_shot_rename,
     SEQUENCER_OT_shot_chronological_numbering,
     SEQUENCER_OT_new_shot_audition,
+    SEQUENCER_OT_shot_audition_set_menu,
     SEQUENCER_OT_set_shot_audition,
 )
 

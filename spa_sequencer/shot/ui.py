@@ -4,7 +4,7 @@
 import bpy
 
 from ..utils import register_classes, unregister_classes
-from .ops import SEQUENCER_OT_new_shot_audition, SEQUENCER_OT_set_shot_audition
+from .ops import SEQUENCER_OT_new_shot_audition, SEQUENCER_OT_set_shot_audition, SEQUENCER_OT_shot_audition_set_menu
 from .core import get_audition_strip
 class SEQUENCER_MT_shot_clean_up(bpy.types.Menu):
     """Shot clean-up menu"""
@@ -50,7 +50,7 @@ class SEQUENCER_MT_shot_audition_set(bpy.types.Menu):
 
     bl_idname = "SEQUENCER_MT_shot_audition_set"
     bl_label = "Audition Set Active"
-    
+
     def draw(self, context):
         layout = self.layout
         audition_strip = get_audition_strip(context.active_strip)
@@ -71,7 +71,7 @@ class SEQUENCER_MT_shot_audition(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator(SEQUENCER_OT_new_shot_audition.bl_idname, text="Make Group")
-        layout.menu(SEQUENCER_MT_shot_audition_set.bl_idname, text="Set Active")
+        layout.operator(SEQUENCER_OT_shot_audition_set_menu.bl_idname, text="Set Active")
         layout.operator("sequencer.meta_separate", text="Ungroup")
         
         
