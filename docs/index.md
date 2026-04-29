@@ -1,3 +1,8 @@
+---
+title: Home
+nav_order: 1
+---
+
 # SPArk Sequencer Documentation
 
 Welcome to the SPArk Sequencer addon documentation.

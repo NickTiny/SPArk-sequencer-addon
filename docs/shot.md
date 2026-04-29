@@ -1,3 +1,8 @@
+---
+title: Shot Management
+nav_order: 4
+---
+
 # Shots
 
 ## Shot Menu

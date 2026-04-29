@@ -1,3 +1,8 @@
+---
+title: Editorial
+nav_order: 6
+---
+
 # Editorial
 ![Editorial Timeline Menu](media/editorial_menu.jpg)
 

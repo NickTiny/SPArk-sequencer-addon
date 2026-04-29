@@ -1,3 +1,8 @@
+---
+title: Rendering
+nav_order: 7
+---
+
 # Rendering
 
 ## Batch Render Panel

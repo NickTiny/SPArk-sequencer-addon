@@ -1,3 +1,8 @@
+---
+title: Dope Sheet
+nav_order: 9
+---
+
 # Dope Sheet
 
 This page covers overlays that are present in the Dope Sheet as well as the Action Editor and Timeline regions in Blender. These regions are tied to the active strip, and represent the internal timing of the Scene Strip's target Scene.

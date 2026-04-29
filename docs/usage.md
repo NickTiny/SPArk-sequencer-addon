@@ -1,3 +1,8 @@
+---
+title: Usage
+nav_order: 3
+---
+
 # Usage
 
 This page explains the typical workflow when using SPArk Sequencer Addon.

@@ -1,3 +1,8 @@
+---
+title: Sequencer Viewport
+nav_order: 8
+---
+
 # Sequencer
 
 ## Sequence Panel

@@ -1,6 +1,11 @@
 # Timeline Synchronization
 
-## Timeline Synchronization Panel
+#---
+title: Timeline Synchronization
+nav_order: 5
+---
+
+# Timeline Synchronization Panel
 
 `Sequencer > Side Panel > SPA.Sequencer`
 
