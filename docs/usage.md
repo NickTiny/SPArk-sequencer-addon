@@ -1,4 +1,4 @@
-# Introduction
+# Usage
 
 This page explains the typical workflow when using SPArk Sequencer Addon.
 
@@ -6,7 +6,7 @@ This page explains the typical workflow when using SPArk Sequencer Addon.
 ## Prerequisites
 
 - [Install Add-On](installation.md)
-- [Install OpenTimelineIO](../CONTRIBUTING.md#installing-opentimelineio) (optional)
+- [Install OpenTimelineIO](https://github.com/NickTiny/SPArk-sequencer-addon/blob/main/CONTRIBUTING.md#installing-opentimelineio) (optional)
 
 ## Understanding the UI
 To understand how time impacts the interface refer to the below image. Green areas are part of your Layout Scene (standard Blender experience) and will behave as expected. Red areas are part of your Edit Scene and changes to the playhead in this area affect which layout scene, or what time is going to be displayed.
@@ -28,7 +28,7 @@ Your blend file requires at least 2 Scenes.
 
 
 ## Your first shot
-A shot is a container that points to a specific camera at a specific time in your Blender scene. To get started from the Sequencer header Menu find **Shot > New**. 
+A shot is a container that points to a specific camera at a specific time in your target scene. To get started from the Sequencer header Menu find **Shot > New**. 
 
 ![Usage New Shot](media/usage_new_shot.jpg)
 
@@ -40,7 +40,7 @@ The 3D Viewport and Dope Sheet timeline interfaces can be synchronized with the 
 ![Usage Navigation](media/usage_navigation.jpg)
 
 
-1. Selecting a Shot from the [Shot List](viewport.md#sequence-viewport-panel) in the 3D Viewport
+1. Selecting a Shot from the [Shot List](viewport.md#sequence-panel) in the 3D Viewport
 1. Navigation with arrow keys in the [Dope Sheet](dopesheet.md) to jump between shots.
 1. Playback / Scrubbing in the Sequencer area, ensure [Synchronization](sync.md#synchronize-operator) is enabled.
 
@@ -59,7 +59,7 @@ In sequence workflow, we have many different scenes inside a single blend file. 
 
 1. Select all strips in your sequence
 1. Navigate to the Sequencer area's header 
-1. Selected **View>Range>Set Frame Range to Strips**
+1. Select **View>Range>Set Frame Range to Strips**
 
 ## Import and Conform Sequence from Timeline
 

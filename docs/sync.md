@@ -1,4 +1,4 @@
-# Sync
+# Timeline Synchronization
 
 ## Timeline Synchronization Panel
 
@@ -12,7 +12,7 @@ The Timeline Synchronization panel is the main control panel for your SPArk Sequ
 Toggle Synchronize System. When enabled SPArk Sequencer will handle synchronization between The Video Sequencer Editor and your 3D Viewport. All non-sequencer regions in Blender's windows will be updated to reflect the active scene strip.
 
 ### Master Scene
-The Master Scene is conventionally the current timeline displayed in your Sequencer. This is the scene that contains the scene strips you want to use for synchronization. This is also the scene that will be targeted by the [Batch Render](#broken-link) panel.
+The Master Scene is conventionally the current timeline displayed in your Sequencer. This is the scene that contains the scene strips you want to use for synchronization. This is also the scene that will be targeted by the [Batch Render](render.md#batch-render-panel) panel.
 
 ### Keep Grease Pencil Settings
 Keep the current active Grease Pencil brush while navigating between shots.

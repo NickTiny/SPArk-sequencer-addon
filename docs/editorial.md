@@ -4,7 +4,7 @@
 Editorial contains two important menus. Timeline I/O to import or export timelines and Conform for aligning/creating scene strips via an imported timeline.
 
 ## Timeline I/O
-Timeline I/O menu contains operators for importing/exporting timelines to external non-linear editing software. Utilizing the OpenTimelineIO python module. See [installation instructions](../CONTRIBUTING.md#installing-opentimelineio).
+Timeline I/O menu contains operators for importing/exporting timelines to a non-linear editing software, utilizing [OpenTimelineIO](http://opentimeline.io/) python module. See [installation instructions](https://github.com/NickTiny/SPArk-sequencer-addon/blob/main/CONTRIBUTING.md#installing-opentimelineio).
 
 ### Import Timeline
 Import an external timeline into the sequencer area. Supported file formats include; OTIO, XML, AAF & EDL.
@@ -13,7 +13,7 @@ Import an external timeline into the sequencer area. Supported file formats incl
 Export the current sequencer area timeline to one of the following formats; OTIO, XML, AAF & EDL.
 
 ## Conform
-Conform menu contains operators for modifying/generating scene strips based on a timeline that was imported with the above 
+Conform menu contains operators for modifying/generating scene strips based on a timeline that was imported with the **Import Timeline** operator above.
 
 
 ### Generate Shots from Panels
@@ -29,7 +29,7 @@ Generate scene strips based on clips in a previously imported timeline.
 
 
 
-### Conform Shots from Panels
+### Conform Shots from Editorial
 ![Editorial Conform Operator Popup](media/editorial_conform_operator_popup.jpg)
 
 Conform existing scene strips to the timing from a previously imported timeline.

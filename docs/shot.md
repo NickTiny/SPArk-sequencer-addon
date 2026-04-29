@@ -3,13 +3,13 @@
 ## Shot Menu
 ![Shot Menu](media/shot_menu.jpg)
 
-The SPArk Sequence Shot Menu offers unique controls that differ from Blender's native operators. 
+The SPArk Sequencer Shot Menu offers unique controls that differ from Blender's native operators. 
 
 ### New Shot
 ![New Shot](media/shot_new.jpg)
 
 
-To add a shot select Shot New from the **Sequencer** Header Menu. Update the shot number,**Use Existing** will copy the Scene from the active strip. 
+To add a shot select **Shot > New** from the **Sequencer** Header Menu. **Use Existing** will copy the Scene from the active strip. 
 
 - **Shot Name:** Set a Prefix/Number/Take: Use arrow to get the next available shot name.
 - **Scene:** Use existing (most cases) or create a new scene from a Template.
@@ -27,7 +27,7 @@ When Duplicating a shot, the selected contents are appended to the end of your t
 
 Each shot is associated with a scene. To delete a shot normally simply select Shot>Delete and leave Delete Scenes unchecked. To remove a shot and the associated scene use Shot>Delete and check the Delete Scenes option. Alternatively, see Blender's native [Strip Delete Operator](https://docs.blender.org/manual/en/latest/video_editing/edit/montage/editing.html#delete).
 
-**Warning:** **Delete Scenes** option will remove associated Scene data from the outliner.**
+**Warning:** The **Delete Scenes** option will remove associated Scene data from the outliner.
 
 ### Adjust Shot’s Timing
 Adjust timing will change the length of a strip in the sequencer and in the Dope Sheet. This will also "push" strips on the same channel to accommodate timing changes.
@@ -35,7 +35,7 @@ Adjust timing will change the length of a strip in the sequencer and in the Dope
 ### Rename Shot
 ![Rename Shot](media/shot_rename.jpg)
 
-To rename a shot use **Shot>Rename**. This will work on a single shot at a time, use the arrow to get the next available shot number. Check the rename scene to also rename the scene associated with this strip.
+To rename a shot use **Shot>Rename**. This will work on a single shot at a time, use the arrow to get the next available shot number. Check **Rename Scene** to also rename the scene associated with this strip.
 
 
 ### Chronological Numbering

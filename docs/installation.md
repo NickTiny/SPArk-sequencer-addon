@@ -12,4 +12,4 @@
 2. Go to `Edit > Preferences > Add-ons`.
 3. Click `Install...` and select the addon ZIP or folder.
 4. Enable `SPArk Sequencer Addon`.
-5. Optional: `opentimelineio` for editorial import/export support, see [OpenTimelineIO installation](../CONTRIBUTING.md#installing-opentimelineio).
+5. Optional: `opentimelineio` for editorial import/export support, see [OpenTimelineIO installation](https://github.com/NickTiny/SPArk-sequencer-addon/blob/main/CONTRIBUTING.md#installing-opentimelineio).

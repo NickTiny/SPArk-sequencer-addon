@@ -1,6 +1,6 @@
-# Sequencer 
+# Sequencer
 
-## Sequence Viewport Panel
+## Sequence Panel
 
 ![Sequence Viewport Panel](media/sequence_viewport_panel.jpg)
 
@@ -31,7 +31,7 @@ Dropdown Menu with the active strip's Scene name. Click this dropdown to open a 
 
 ### Camera Selector
 
-![Sequence Viewport Panel Scene Selector](media/sequence_viewport_panel_scene_camera.jpg)
+![Sequence Viewport Panel Camera Selector](media/sequence_viewport_panel_scene_camera.jpg)
 
 
 Dropdown Menu with the active strip's Camera name. Click this dropdown to open a list of available Cameras in the current Scene.
