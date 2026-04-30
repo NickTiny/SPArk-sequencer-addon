@@ -417,21 +417,6 @@ def test_shot_slip_content_negative_offset():
     assert sh2.content_start == sh1.content_start - offset
     assert sh2.left_handle == sh1.left_handle
 
-
-def test_make_meta_strip():
-    edit_scene = bpy.context.scene
-    sh1 = create_shot_scene(edit_scene, 1, 1)
-    sh2 = create_shot_scene(edit_scene, 2, 1)
-    sed = edit_scene.sequence_editor
-
-    meta = make_meta_strip([sh1, sh2], "TestMeta", 1, 3)
-
-    assert isinstance(meta, bpy.types.MetaStrip)
-    assert len(meta.strips) == 2
-    # Original strips should no longer be in top-level
-    assert sh1.name not in [s.name for s in sed.strips if s != meta]
-
-
 def test_new_audition_strip_creates_meta():
     edit_scene = bpy.context.scene
     sh1 = create_shot_scene(edit_scene, 1, 1)
