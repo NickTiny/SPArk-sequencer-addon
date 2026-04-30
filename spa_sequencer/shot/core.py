@@ -789,6 +789,12 @@ class AuditionStripProperties(bpy.types.PropertyGroup):
         description="Audition the strip with this name as the current alternative take",
         default="",
     )
+    
+    is_audition: bpy.props.BoolProperty(
+        name="Is Audition Strip",
+        description="Wether meta strip is auditioning alternative takes",
+        default=False,
+    )
 
 classes = (AuditionStripProperties,)
 

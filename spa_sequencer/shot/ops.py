@@ -22,7 +22,7 @@ from ..sync.core import (
     get_sync_master_strip,
     get_sync_settings,
     remap_frame_value,
-    sync_system_update
+    sync_system_update,
 )
 from ..utils import get_edit_scene, register_classes, unregister_classes
 
@@ -41,9 +41,7 @@ def get_last_used_frame(
     Get the last used internal frame of `scene` from the given list of `sequences`.
     """
     scene_sequences = [
-        s
-        for s in sequences
-        if isinstance(s, bpy.types.SceneStrip) and s.scene == scene
+        s for s in sequences if isinstance(s, bpy.types.SceneStrip) and s.scene == scene
     ]
 
     if not scene_sequences:
@@ -73,7 +71,7 @@ def ensure_sequencer_frame_visible(context: bpy.types.Context, frame: int):
     frame_coord = context.region.view2d.view_to_region(frame, 0, clip=False)[0]
     if frame_coord < 0 or frame_coord > context.region.width:
         edit_scene = get_edit_scene(context)
-        
+
         # Temp override current frame value and move view to frame.
         frame_old = edit_scene.frame_current
         edit_scene.frame_current = frame
@@ -123,7 +121,9 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
 
     def update_default_source_scene(self, context):
         if self.scene_mode == "EXISTING" and (
-            scene := getattr(get_edit_scene(context).sequence_editor.active_strip, "scene")
+            scene := getattr(
+                get_edit_scene(context).sequence_editor.active_strip, "scene"
+            )
         ):
             self.source_scene = scene.name
 
@@ -186,7 +186,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
 
     def invoke(self, context: bpy.types.Context, _event):
         edit_scene = get_edit_scene(context)
-        
+
         if not (sed := edit_scene.sequence_editor):
             self.name = shot_naming.default_shot_name()
         else:
@@ -209,9 +209,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
                 and ref_strip.type == "SCENE"
                 and self.source_scene == ref_strip.scene.name
             ):
-                self.start_3d = remap_frame_value(
-                    edit_scene.frame_current, ref_strip
-                )
+                self.start_3d = remap_frame_value(edit_scene.frame_current, ref_strip)
             elif source_scene:
                 self.start_3d = source_scene.frame_start
             else:
@@ -240,7 +238,9 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         if not self.validate_inputs(context):
             return {"CANCELLED"}
 
-        source_scene = bpy.data.scenes[self.source_scene] if self.scene_mode != "NEW" else None
+        source_scene = (
+            bpy.data.scenes[self.source_scene] if self.scene_mode != "NEW" else None
+        )
 
         if self.scene_mode != "NEW" and self.start_3d < source_scene.frame_start:
             self.report({"ERROR"}, "3D Start is not in the range of source scene")
@@ -259,11 +259,11 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         elif self.scene_mode == "NEW":
             # Create a new empty scene
             shot_scene = bpy.data.scenes.new(self.name)
-            
+
             # Set scene's frame range
             shot_scene.frame_start = 1
             shot_scene.frame_end = shot_scene.frame_start + self.duration - 1
-            
+
             # Create a camera for the new scene
             for i in range(1, 100000):
                 camera_name = f"Camera_{i:03d}"
@@ -273,11 +273,11 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             camera_obj = bpy.data.objects.new(name=camera_name, object_data=camera_data)
             shot_scene.collection.objects.link(camera_obj)
             shot_scene.camera = camera_obj
-            
+
             # Set a position for new camera
             camera_obj.location = (0, -10, 2)
             camera_obj.rotation_euler = (1.5708, 0, 0)  # 90 degrees on X axis
-            
+
             left_handle_offset = 0  # No offset for a new scene
         else:
             # Duplicate source scene.
@@ -302,9 +302,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         if self.scene_mode == "EXISTING":
             shot_scene.camera = source_scene.camera
 
-        edit_scene.frame_end = max(
-            new_strip.right_handle - 1, edit_scene.frame_end
-        )
+        edit_scene.frame_end = max(new_strip.right_handle - 1, edit_scene.frame_end)
 
         # Ensure newly created shot is visible.
         ensure_sequencer_frame_visible(context, new_strip.right_handle)
@@ -387,7 +385,7 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
         sed.active_strip = new_strips[0]
         for strip in new_strips:
             strip.select = True
-            
+
         edit_scene = get_edit_scene(context)
 
         edit_scene.frame_end = max(
@@ -519,7 +517,7 @@ class SEQUENCER_OT_shot_timing_adjust(bpy.types.Operator):
         context: bpy.types.Context,
     ) -> Optional[bpy.types.SceneStrip]:
         edit_scene = get_edit_scene(context)
-        
+
         if context.area.type == "DOPESHEET_EDITOR":
             strip = get_sync_master_strip(use_cache=True)[0]
             return strip if strip and strip.scene == context.window.scene else None
@@ -559,10 +557,7 @@ class SEQUENCER_OT_shot_timing_adjust(bpy.types.Operator):
         return {"RUNNING_MODAL"}
 
     def update_header_text(self, context, event):
-        text = (
-            f"Offset: {self.offset}"
-            f" | New Shot Duration: {self.strip.duration}"
-        )
+        text = f"Offset: {self.offset}" f" | New Shot Duration: {self.strip.duration}"
         context.area.header_text_set(text)
 
     def modal(self, context: bpy.types.Context, event: bpy.types.Event):
