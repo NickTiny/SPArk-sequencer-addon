@@ -198,7 +198,7 @@ def get_strips_at_frame(
 
 def get_scene_strip_at_frame(
     frame: int,
-    sequence_container: bpy.types.SequenceEditor|bpy.types.MetaStrip,
+    sequence_container: bpy.types.SequenceEditor | bpy.types.MetaStrip,
     skip_muted: bool = True,
 ) -> tuple[Union[bpy.types.SceneStrip, None], int]:
     """
@@ -219,15 +219,17 @@ def get_scene_strip_at_frame(
         muted_channels = [idx for idx, channel in enumerate(channels) if channel.mute]
         strips = [strip for strip in strips if not strip.channel in muted_channels]
 
-    strips = get_strips_at_frame(frame, strips, (bpy.types.SceneStrip,  bpy.types.MetaStrip), skip_muted)
+    strips = get_strips_at_frame(
+        frame, strips, (bpy.types.SceneStrip, bpy.types.MetaStrip), skip_muted
+    )
 
     if not strips:
         return None, frame
     # Sort strips by channel
     strip = sorted(strips, key=lambda x: x.channel)[-1]
-    
+
     if isinstance(strip, bpy.types.MetaStrip):
-        # If we carry the frame value here we are recursively calling remap_frame_value
+        # Drop the frame value, inner metastrip timing matches outer timeline
         strip, _ = get_scene_strip_at_frame(frame, strip, skip_muted)
         if not strip:
             return None, frame
