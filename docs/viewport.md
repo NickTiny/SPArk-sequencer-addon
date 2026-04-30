@@ -17,7 +17,7 @@ The Master Scene is conventionally the current timeline displayed in your Sequen
 
 ### Shot List
 ![Sequence Viewport Panel Shared](media/sequence_viewport_panel_shared.jpg)
-The Shot List contains a list of the active Scene Strips in your sequence. The Active Strip is indicated with a Blue Highlight. You can select any item in the list to jump to the first frame of that strip in the Sequencer timeline. The columns of the Shot list from left to right represent; Shot name, Camera Name and Scene name. Cameras that are shared with the current active strip are indicated with a Camera Icon. Scenes that are shared with the current active strip are indicated with a Scene Icon.
+The Shot List contains a list of the active Scene Strips in your sequence. The Active Strip is indicated with a Blue Highlight. You can select any item in the list to jump to the first frame of that strip in the Sequencer timeline. The columns of the Shot list from left to right represent; Shot name, Camera Name and Scene name. Cameras that are shared with the current active strip are indicated with a Camera Icon. Scenes that are shared with the current active strip are indicated with a Scene Icon. Muted strips are hidden from shot list.
 
 
 
