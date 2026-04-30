@@ -14,7 +14,7 @@ The SPArk Sequencer Shot Menu offers unique controls that differ from Blender's 
 ![New Shot](media/shot_new.jpg)
 
 
-To add a shot select **Shot > New** from the **Sequencer** Header Menu. **Use Existing** will copy the Scene from the active strip. 
+To add a shot select **Shot > New** from the **Sequencer** Header Menu. **Use Existing** will copy the Scene from the active strip. When a Metastrip is open in the Sequencer, the new shot will be placed inside it.
 
 - **Shot Name:** Set a Prefix/Number/Take: Use arrow to get the next available shot name.
 - **Scene:** Use existing (most cases) or create a new scene from a Template.
@@ -23,7 +23,7 @@ To add a shot select **Shot > New** from the **Sequencer** Header Menu. **Use Ex
 - **Channel:** Select a row (aka channel) to place this new clip on, in the Sequencer.
 
 ### Duplicate Shot
-When Duplicating a shot, the selected contents are appended to the end of your timeline, this also means that these clips are shifted in the Dope Sheet. To duplicate a shot without adjusting its timing use Blender's native [Strip Duplicate Operator](https://docs.blender.org/manual/en/latest/video_editing/edit/montage/editing.html#duplicate).
+When Duplicating a shot, the selected contents are appended to the end of your timeline, this also means that these clips are shifted in the Dope Sheet. To duplicate a shot without adjusting its timing use Blender's native [Strip Duplicate Operator](https://docs.blender.org/manual/en/latest/video_editing/edit/montage/editing.html#duplicate). When a Metastrip is open in the Sequencer, the duplicated shot will be placed inside it.
 
 
 ### Delete Shot
