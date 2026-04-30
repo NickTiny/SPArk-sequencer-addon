@@ -43,6 +43,8 @@ Your blend file requires at least 2 Scenes.
 1. Set your [Master Scene](sync.md#master-scene) in the Sync Panel.
 2. Enable [Timeline Synchronization](sync.md#synchronize-operator).
 
+![Usage Sync](media/usage_sync.jpg)
+
 ## Your first shot
 A shot is a container that points to a specific camera at a specific time in your target scene. To get started from the Sequencer header menu find **Shot > New**.
 
