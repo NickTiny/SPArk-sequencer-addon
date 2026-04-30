@@ -806,6 +806,7 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
             strip
             for strip in get_edit_scene(context).sequence_editor.strips
             if isinstance(strip, bpy.types.SceneStrip)
+            or isinstance(strip, bpy.types.MetaStrip)
         ]
 
         if not scene_strips:
@@ -817,14 +818,32 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
         items_to_rename: dict[bpy.types.SceneStrip, tuple[str, bool]] = dict()
 
         # Go through the shots chronologically (sorted by the start frame)
-        sorted_scene_strips = sorted(scene_strips, key=lambda x: x.left_handle)
+        sorted_strips = sorted(scene_strips, key=lambda x: x.left_handle)
 
         # 1st pass: list items (strips/scenes) to rename.
-        for strip in sorted_scene_strips:
+        for strip in sorted_strips:
             if not current_name:
                 current_name = self.first_shot_name.to_string()
             else:
                 current_name = shot_naming.next_shot_name_from_name(current_name)
+
+            if isinstance(strip, bpy.types.MetaStrip):
+                inner_scene_strips = [s for s in strip.strips if isinstance(s, bpy.types.SceneStrip)]
+                shot_data = shot_naming.shot_data_from_name(current_name, strict=False)
+                take_values = shot_naming.take_values[1:]  # skip empty (no-take) value
+                if len(inner_scene_strips) > len(take_values):
+                    self.report(
+                        {"ERROR"},
+                        f"MetaStrip '{strip.name}' has more takes than supported ({len(take_values)})",
+                    )
+                    return {"CANCELLED"}
+                for i, inner_scene_strip in enumerate(inner_scene_strips):
+                    take_name = shot_naming.build_shot_name(
+                        number=shot_data.number,
+                        prefix=shot_data.prefix,
+                        take=take_values[i],
+                    )
+                    items_to_rename[inner_scene_strip] = (take_name, False)
 
             # Evaluate if scene has to be renamed.
             do_rename_scene = False
