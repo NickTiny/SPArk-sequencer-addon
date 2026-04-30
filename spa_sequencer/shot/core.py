@@ -827,24 +827,6 @@ def set_active_audition(
     sync_system_update(context, force=True)
 
 
-def set_active_audition_strip(
-    audition_strip: bpy.types.MetaStrip, active_strip: bpy.types.SceneStrip
-):
-    """Set the name of the active audition strip and adjust timeline accordingly"""
-    for strip in audition_strip.strips:
-        if strip != active_strip:
-            strip.mute = True
-        else:
-            strip.mute = False
-
-    if active_strip.right_handle != audition_strip.right_handle:
-        offset = active_strip.right_handle - audition_strip.right_handle
-        adjust_shot_duration(audition_strip, offset)
-    audition_strip.audition.active = active_strip.name
-    audition_strip.name = f"Active: {active_strip.name}"
-
-
-
 class AuditionStripProperties(bpy.types.PropertyGroup):
     """Audition Strip Properties."""
 
