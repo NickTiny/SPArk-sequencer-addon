@@ -779,7 +779,6 @@ def register():
         type=AuditionStripProperties,
         name="Audition Strip Properties",
     )
-    pass
 
 
 def unregister():

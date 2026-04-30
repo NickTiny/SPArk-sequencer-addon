@@ -48,6 +48,8 @@ To rename a shot use **Shot>Rename**. This will work on a single shot at a time,
 
 After editing your shot names may be out of order. To reset the numbering of all shots use **Shot>Cleanup>Chronological Numbering**. This will rename all shots based on the specified naming convention. Scenes can also be renamed by selecting a scene rename policy.
 
+Metastrips and Audition groups are supported: the Metastrip is assigned the next chronological shot name, and its inner strips receive take suffixes (A, B, C…) based on that name. The number of inner strips cannot exceed the number of available take letters.
+
 ## Audition Menu
 ![Audition Menu](media/audition_set_active.jpg)
 
