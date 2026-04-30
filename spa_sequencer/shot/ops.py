@@ -22,6 +22,7 @@ from ..sync.core import (
     get_sync_master_strip,
     get_sync_settings,
     remap_frame_value,
+    sync_system_update
 )
 from ..utils import get_edit_scene, register_classes, unregister_classes
 
