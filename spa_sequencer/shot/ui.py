@@ -73,8 +73,7 @@ class SEQUENCER_MT_shot_audition(bpy.types.Menu):
         layout.operator(SEQUENCER_OT_new_shot_audition.bl_idname, text="Make Group")
         layout.operator(SEQUENCER_OT_shot_audition_set_menu.bl_idname, text="Set Active")
         layout.operator("sequencer.meta_separate", text="Ungroup")
-        
-        
+
 
 classes = (
     SEQUENCER_MT_shot,

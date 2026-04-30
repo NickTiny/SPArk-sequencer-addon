@@ -935,6 +935,7 @@ class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
         return True
 
     def get_audition_strips_enum(self, context):
+        # Use bpy.context here as context isn't passed correctly to enum
         audition_strip = get_audition_strip(bpy.context.active_strip)
         if not audition_strip:
             return [("", "", "")]

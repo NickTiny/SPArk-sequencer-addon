@@ -505,7 +505,7 @@ def adjust_shot_duration(
     from_frame_start: bool = False,
 ) -> bool:
     """
-    Adjust the duration of `strip` and its underlying scene (if avaliable) by offsetting either its end
+    Adjust the duration of `strip` and its underlying scene (if available) by offsetting either its end
     or start frame (`from_frame_start` set to True) by `handle_offset`.
     All strips on the same channel after `strip` are shifted accordingly.
 
@@ -518,10 +518,10 @@ def adjust_shot_duration(
     :param from_frame_start: Whether to offset shot's inner start frame rather than its end frame. (strip must be ``bpy.types.SceneStrip``.)
     :return: Whether the function modified the duration of `strip`.
     """
-    
+
     if from_frame_start and not isinstance(strip, bpy.types.SceneStrip):
         raise TypeError(f"Strip must be bpy.types.SceneStrip' if from_frame_start is True")
-    
+
     if isinstance(strip, bpy.types.SceneStrip) and not strip.scene:
         raise ValueError(f"Invalid shot: no scene set for '{strip.name}'")
 
@@ -597,7 +597,7 @@ def adjust_shot_duration(
             # 2. Move impacted strips to the left
             for s in impacted_strips:
                 s.content_start += new_handle_offset
-                
+
     if isinstance(strip, bpy.types.SceneStrip):
         adapt_scene_range(strip)
     return True
@@ -693,7 +693,7 @@ def new_audition_strip(context:bpy.types, strips: List[bpy.types.SceneStrip]):
         strips,
         key=lambda strip: strip.duration,
     )
-    
+
     # Create meta strip and move selected strips into it
     meta_strip = make_meta_strip(strips, active_strip.name, active_strip.left_handle, active_strip.channel)
     meta_strip.right_handle = active_strip.right_handle
@@ -705,14 +705,15 @@ def get_audition_strip(strip:bpy.types.Strip) -> bpy.types.MetaStrip|None:
     containing the current strip."""
     if strip is None:
         return
-    
+
     if isinstance(strip, bpy.types.MetaStrip) and strip.audition.is_audition:
         return strip
-    
+
     parent_strip = get_audition_strip(strip.parent_meta())
     if parent_strip:
         return parent_strip
-    
+
+
 def set_active_audition(
     context:bpy.types.Context, audition_strip: bpy.types.MetaStrip, active_strip: bpy.types.SceneStrip
 ):
@@ -739,7 +740,7 @@ class AuditionStripProperties(bpy.types.PropertyGroup):
         description="Audition the strip with this name as the current alternative take",
         default="",
     )
-    
+
     is_audition: bpy.props.BoolProperty(
         name="Is Audition Strip",
         description="Wether meta strip is auditioning alternative takes",
@@ -784,4 +785,4 @@ def register():
 def unregister():
     del bpy.types.Strip.audition
     unregister_classes(classes)
-    
+
