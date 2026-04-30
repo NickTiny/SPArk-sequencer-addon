@@ -364,7 +364,6 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
         sed = edit_scene.sequence_editor
         strip_container = get_strip_container(edit_scene.sequence_editor)
 
-
         new_strips = []
         for strip in get_selected_scene_sequences(strip_container.strips):
             name = shot_naming.next_shot_name_from_sequences(strip_container)
