@@ -48,3 +48,21 @@ To rename a shot use **Shot>Rename**. This will work on a single shot at a time,
 
 After editing your shot names may be out of order. To reset the numbering of all shots use **Shot>Cleanup>Chronological Numbering**. This will rename all shots based on the specified naming convention. Scenes can also be renamed by selecting a scene rename policy.
 
+## Audition Menu
+![Audition Menu](media/audition_set_active.jpg)
+
+The **Audition** menu allows you to group multiple shots at the same position and audition them one at a time — useful for comparing alternative takes of the same shot.
+
+### Make Group
+Select two or more scene strips that share the same start frame, then use **Shot > Audition > Make Group**. The selected strips are wrapped into an audition group (a Metastrip). The longest strip becomes the initial active take, and all other strips are muted.
+
+**Requirements:**
+- At least two scene strips must be selected.
+- All selected strips must share the same start frame.
+
+### Set Active
+Use **Shot > Audition > Set Active** (or press **Ctrl+A**) to switch which strip is the currently active take in the audition group. A menu lists all strips inside the group; selecting one unmutes it, mutes the rest, and adjusts the group's duration to match the newly active strip. If the duration changes, strips on the same channel are retimed to accommodate, similar to [Adjust Shot's Timing](#adjust-shots-timing).
+
+### Ungroup
+Use **Shot > Audition > Ungroup** to dissolve the audition group back into individual strips in the sequencer (equivalent to Blender's native [UnMeta Strip](https://docs.blender.org/manual/en/latest/video_editing/edit/montage/meta.html#unmeta-strip) operator).
+

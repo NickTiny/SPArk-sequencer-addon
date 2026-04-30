@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2023, The SPA Studios. All rights reserved.
 
-from typing import Optional
+from typing import Optional, List
 
 import bpy
 from ..preferences import get_addon_prefs
@@ -12,6 +12,9 @@ from .core import (
     get_valid_shot_scenes,
     rename_scene,
     slip_shot_content,
+    new_audition_strip,
+    get_audition_strip,
+    set_active_audition,
     get_strip_container
 )
 from .naming import shot_naming, ShotNamingProperty
@@ -866,6 +869,121 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class SEQUENCER_OT_new_shot_audition(bpy.types.Operator):
+    bl_idname = "sequencer.new_shot_audition"
+    bl_label = "New Audition Group"
+    bl_description = (
+        "Create an audition group to compare the selected shots"
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.sequencer_scene is None:
+            return False
+        if len(context.selected_strips) < 2:
+            cls.poll_message_set("Select two or more scene strips")
+            return False
+
+        return True
+
+    def execute(self, context: bpy.types.Context):
+        try:
+            new_audition_strip(context, context.selected_strips)
+        except Exception as e:
+            self.report({"ERROR"}, str(e))
+            return {"CANCELLED"}
+        return {"FINISHED"}
+
+
+class SEQUENCER_OT_shot_audition_set_menu(bpy.types.Operator):
+    bl_idname = "sequencer.shot_audition_set_menu"
+    bl_label = "Shot Audition Set Menu"
+    bl_description = "Open the audition set menu"
+    bl_options = {"REGISTER"}
+
+    bl_keymaps_defaults = {
+        "space_type": "SEQUENCE_EDITOR",
+        "category_name": "Sequencer",
+    }
+    bl_keymaps = [
+        {"key": "A", "ctrl": True},
+    ]
+
+    def execute(self, context: bpy.types.Context):
+        bpy.ops.wm.call_menu(name="SEQUENCER_MT_shot_audition_set")
+        return {"FINISHED"}
+
+
+class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
+    bl_idname = "sequencer.set_shot_audition"
+    bl_label = "Set Active Audition"
+    bl_description = "Select Shot from Audition Group to set as Active"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        strip = context.active_strip
+        if not strip:
+            cls.poll_message_set("No strip is selected")
+            return False
+
+        audition_strip = get_audition_strip(strip)
+        if not audition_strip:
+            cls.poll_message_set("Active strip is not an audition strip")
+            return False
+        return True
+
+    def get_audition_strips_enum(self, context):
+        # Use bpy.context here as context isn't passed correctly to enum
+        audition_strip = get_audition_strip(bpy.context.active_strip)
+        if not audition_strip:
+            return [("", "", "")]
+        return [(item.name, item.name, item.name) for item in audition_strip.strips]
+
+    audition_strip_selector: bpy.props.EnumProperty(  # type:ignore
+        name="Shot",
+        items=get_audition_strips_enum,
+        description="Select a Shot to set as Active Audition",
+    )
+
+    cycle: bpy.props.BoolProperty(  # type:ignore
+        name="Cycle",
+        description="Cycle to the next strip in the audition group",
+        default=False,
+    )
+
+    def invoke(self, context, event):
+        if self.cycle:
+            return self.execute(context)
+        return context.window_manager.invoke_props_dialog(self, width=350)
+
+    def draw(self, context):
+        self.layout.use_property_split = True
+        self.layout.use_property_decorate = False
+        self.layout.prop(self, "audition_strip_selector")
+
+    def execute(self, context: bpy.types.Context):
+        audition_strip = get_audition_strip(context.active_strip)
+
+        if self.cycle:
+            strips = list(audition_strip.strips)
+            current_name = audition_strip.audition.active
+            current_idx = next(
+                (i for i, s in enumerate(strips) if s.name == current_name), -1
+            )
+            self.audition_strip_selector = strips[(current_idx + 1) % len(strips)].name
+            # Required for redo panel to function correctly
+            self.cycle = False
+        set_strip = audition_strip.strips.get(self.audition_strip_selector)
+        try:
+            set_active_audition(context, audition_strip, set_strip)
+        except Exception as e:
+            self.report({"ERROR"}, str(e))
+            return {"CANCELLED"}
+        return {"FINISHED"}
+
+
 classes = (
     SEQUENCER_OT_shot_new,
     SEQUENCER_OT_shot_duplicate,
@@ -873,6 +991,9 @@ classes = (
     SEQUENCER_OT_shot_timing_adjust,
     SEQUENCER_OT_shot_rename,
     SEQUENCER_OT_shot_chronological_numbering,
+    SEQUENCER_OT_new_shot_audition,
+    SEQUENCER_OT_shot_audition_set_menu,
+    SEQUENCER_OT_set_shot_audition,
 )
 
 

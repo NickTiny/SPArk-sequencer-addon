@@ -10,7 +10,10 @@ from ..preferences import get_addon_prefs
 from ..sync.core import (
     get_sync_settings,
     remap_frame_value,
+    sync_system_update
 )
+from ..utils import register_classes, unregister_classes
+
 
 # Data structure to map source-to-duplicated datablock
 DuplicationManifest = dict[bpy.types.ID, bpy.types.ID]
@@ -497,12 +500,12 @@ def adapt_scene_range(strip: bpy.types.SceneStrip):
 
 
 def adjust_shot_duration(
-    strip: bpy.types.SceneStrip,
+    strip: bpy.types.Strip,
     handle_offset: int,
     from_frame_start: bool = False,
 ) -> bool:
     """
-    Adjust the duration of `strip` and its underlying scene by offsetting either its end
+    Adjust the duration of `strip` and its underlying scene (if available) by offsetting either its end
     or start frame (`from_frame_start` set to True) by `handle_offset`.
     All strips on the same channel after `strip` are shifted accordingly.
 
@@ -512,10 +515,14 @@ def adjust_shot_duration(
 
     :param strip: The strip to adjust the duration of.
     :param handle_offset: The frame offset to apply.
-    :param from_frame_start: Whether to offset shot's inner start frame rather than its end frame.
+    :param from_frame_start: Whether to offset shot's inner start frame rather than its end frame. (strip must be ``bpy.types.SceneStrip``.)
     :return: Whether the function modified the duration of `strip`.
     """
-    if not strip.scene:
+
+    if from_frame_start and not isinstance(strip, bpy.types.SceneStrip):
+        raise TypeError(f"Strip must be bpy.types.SceneStrip' if from_frame_start is True")
+
+    if isinstance(strip, bpy.types.SceneStrip) and not strip.scene:
         raise ValueError(f"Invalid shot: no scene set for '{strip.name}'")
 
     # Ensure the shot lasts at least 1 frame and compute effective offset
@@ -591,7 +598,8 @@ def adjust_shot_duration(
             for s in impacted_strips:
                 s.content_start += new_handle_offset
 
-    adapt_scene_range(strip)
+    if isinstance(strip, bpy.types.SceneStrip):
+        adapt_scene_range(strip)
     return True
 
 
@@ -657,6 +665,90 @@ def get_scene_cameras(scene: bpy.types.Scene) -> list[bpy.types.Object]:
         key=lambda x: x.name,
     )
 
+def get_strip_container(sequence_editor:bpy.types.SequenceEditor) ->bpy.types.SequenceEditor|bpy.types.MetaStrip:
+    """Returns either the current sequence editor or the current metastrip
+    if the metastrip is currently being displayed in the sequence editor."""
+    if len(sequence_editor.meta_stack) == 0:
+        return sequence_editor
+    return sequence_editor.meta_stack[-1]
+
+def make_meta_strip(strips: List[bpy.types.SceneStrip], name:str, frame_start:int, channel:int) -> bpy.types.MetaStrip:
+    """Create Metastrip and populate it with given scene strips"""
+    sequence_editor = strips[0].id_data.sequence_editor
+    meta_strip : bpy.types.MetaStrip = sequence_editor.strips.new_meta(name=name, frame_start=frame_start, channel=channel)
+    for strip in strips:
+        strip.move_to_meta(meta_strip)
+    return meta_strip
+
+def new_audition_strip(context:bpy.types, strips: List[bpy.types.SceneStrip]):
+    if not all(isinstance(s, bpy.types.SceneStrip) for s in strips):
+        raise TypeError("One or more selected strips are not scene strips")
+
+    left_handles = [strip.left_handle for strip in strips]
+    if not all(lh == left_handles[0] for lh in left_handles):
+        raise ValueError("All selected strips must share the same start frame")
+
+    # Use the longest strip as the active audition (ensyure new meta won't ovewrite anything)
+    active_strip = max(
+        strips,
+        key=lambda strip: strip.duration,
+    )
+
+    # Create meta strip and move selected strips into it
+    meta_strip = make_meta_strip(strips, active_strip.name, active_strip.left_handle, active_strip.channel)
+    meta_strip.right_handle = active_strip.right_handle
+    meta_strip.audition.is_audition = True
+    set_active_audition(context, meta_strip, active_strip)
+
+def get_audition_strip(strip:bpy.types.Strip) -> bpy.types.MetaStrip|None:
+    """From either the strip itself or it's parent meta, find the audition strip
+    containing the current strip."""
+    if strip is None:
+        return
+
+    if isinstance(strip, bpy.types.MetaStrip) and strip.audition.is_audition:
+        return strip
+
+    parent_strip = get_audition_strip(strip.parent_meta())
+    if parent_strip:
+        return parent_strip
+
+
+def set_active_audition(
+    context:bpy.types.Context, audition_strip: bpy.types.MetaStrip, active_strip: bpy.types.SceneStrip
+):
+    """Set the name of the active audition strip and adjust timeline accordingly"""
+    for strip in audition_strip.strips:
+        if strip != active_strip:
+            strip.mute = True
+        else:
+            strip.mute = False
+
+    if active_strip.right_handle != audition_strip.right_handle:
+        offset = active_strip.right_handle - audition_strip.right_handle
+        adjust_shot_duration(audition_strip, offset)
+    audition_strip.audition.active = active_strip.name
+    audition_strip.name = f"Active: {active_strip.name}"
+    sync_system_update(context, force=True)
+
+
+class AuditionStripProperties(bpy.types.PropertyGroup):
+    """Audition Strip Properties."""
+
+    active: bpy.props.StringProperty(
+        name="Active Audition Strip",
+        description="Audition the strip with this name as the current alternative take",
+        default="",
+    )
+
+    is_audition: bpy.props.BoolProperty(
+        name="Is Audition Strip",
+        description="Wether meta strip is auditioning alternative takes",
+        default=False,
+    )
+
+classes = (AuditionStripProperties,)
+
 
 def get_strip_container(
     sequence_editor: bpy.types.SequenceEditor,
@@ -682,8 +774,15 @@ def make_meta_strip(
 
 
 def register():
+    register_classes(classes)
+    bpy.types.Strip.audition = bpy.props.PointerProperty(
+        type=AuditionStripProperties,
+        name="Audition Strip Properties",
+    )
     pass
 
 
 def unregister():
-    pass
+    del bpy.types.Strip.audition
+    unregister_classes(classes)
+
