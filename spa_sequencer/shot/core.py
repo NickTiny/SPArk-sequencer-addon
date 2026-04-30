@@ -823,7 +823,7 @@ def get_audition_strip(strip:bpy.types.Strip) -> bpy.types.MetaStrip|None:
         return parent_strip
     
 def set_active_audition(
-    context:bpy.types.Context, audition_strip: bpy.types.MetaStrip, active_strip: bpy.types.SceneStrip
+    context:bpy.types.Context, audition_strip: bpy.types.MetaStrip, active_strip: bpy.types.SceneStrip, sync_update=True,
 ):
     """Set the name of the active audition strip and adjust timeline accordingly"""
     for strip in audition_strip.strips:
@@ -837,7 +837,8 @@ def set_active_audition(
         adjust_shot_duration(audition_strip, offset)
     audition_strip.audition.active = active_strip.name
     audition_strip.name = f"Active: {active_strip.name}"
-    sync_system_update(context, force=True)
+    if sync_update:
+        sync_system_update(context, force=True)
 
 
 class AuditionStripProperties(bpy.types.PropertyGroup):

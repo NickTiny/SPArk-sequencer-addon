@@ -879,6 +879,17 @@ class SEQUENCER_OT_shot_chronological_numbering(bpy.types.Operator):
 
         # 4th pass: use final name.
         for strip, (new_name, do_rename_scene) in items_to_rename.items():
+
+            # Special Case for Audition strips 
+            audition_strip = get_audition_strip(strip)
+            if audition_strip == strip: # Don't rename the audition directly, use set_active_audition()
+                continue
+            if audition_strip and audition_strip.audition.active + tmp_suffix == strip.name:
+                strip.name = new_name
+                set_active_audition(context, audition_strip, strip, sync_update=False)
+                continue
+            
+            # Standard Behavour
             strip.name = new_name
             if do_rename_scene:
                 rename_scene(strip.scene, new_name)
