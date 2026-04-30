@@ -101,7 +101,11 @@ class SEQUENCE_UL_shot(bpy.types.UIList):
 
         # Keep only scene strips.
         flt_flags = [
-            self.bitflag_filter_item if isinstance(obj, bpy.types.SceneStrip) else 0
+            (
+                self.bitflag_filter_item
+                if isinstance(obj, bpy.types.SceneStrip) and not obj.mute
+                else 0
+            )
             for obj in objects
         ]
         flt_neworder = []
@@ -149,7 +153,7 @@ class VIEW3D_PT_sequence(bpy.types.Panel):
             SEQUENCE_UL_shot.bl_idname,
             "",
             sed,
-            "strips",
+            "strips_all",
             context.window_manager.sequence_settings,
             "shot_active_index",
             type="DEFAULT",

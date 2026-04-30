@@ -198,33 +198,41 @@ def get_strips_at_frame(
 
 def get_scene_strip_at_frame(
     frame: int,
-    sequence_editor: bpy.types.SequenceEditor,
+    sequence_container: bpy.types.SequenceEditor | bpy.types.MetaStrip,
     skip_muted: bool = True,
 ) -> tuple[Union[bpy.types.SceneStrip, None], int]:
     """
-    Get the scene strip at `frame` in `sequence_editor`'s strips with the highest
+    Get the scene strip at `frame` in `sequence_container`'s strips with the highest
     channel number.
 
     :param frame: The frame value
-    :param sequence_editor: Sequence editor containing the strips
+    :param sequence_container: Sequence editor or metastrip containing the strips
     :param skip_muted: Exclude muted strips
     :returns: The scene strip (or None) and the frame in underlying scene's reference
     """
 
-    strips = sequence_editor.strips
-    channels = sequence_editor.channels
+    strips = sequence_container.strips
+    channels = sequence_container.channels
 
     if skip_muted:
         # Exclude strips from muted channels
         muted_channels = [idx for idx, channel in enumerate(channels) if channel.mute]
         strips = [strip for strip in strips if not strip.channel in muted_channels]
 
-    strips = get_strips_at_frame(frame, strips, bpy.types.SceneStrip, skip_muted)
+    strips = get_strips_at_frame(
+        frame, strips, (bpy.types.SceneStrip, bpy.types.MetaStrip), skip_muted
+    )
 
     if not strips:
         return None, frame
     # Sort strips by channel
     strip = sorted(strips, key=lambda x: x.channel)[-1]
+
+    if isinstance(strip, bpy.types.MetaStrip):
+        # Drop the frame value, inner metastrip timing matches outer timeline
+        strip, _ = get_scene_strip_at_frame(frame, strip, skip_muted)
+        if not strip:
+            return None, frame
 
     # Help type checking: strip can only be a SceneStrip here
     assert isinstance(strip, bpy.types.SceneStrip)
@@ -374,7 +382,7 @@ def get_sync_master_strip(
 
     if use_cache:
         return (
-            master_scene.sequence_editor.strips.get(settings.last_master_strip),
+            master_scene.sequence_editor.strips_all.get(settings.last_master_strip),
             settings.last_strip_scene_frame,
         )
 
@@ -537,7 +545,7 @@ def sync_system_update(context: bpy.types.Context, force: bool = False):
 
     # Update cached values
     sync_settings.last_master_strip = strip.name
-    sync_settings.last_master_strip_idx = master_scene.sequence_editor.strips.find(
+    sync_settings.last_master_strip_idx = master_scene.sequence_editor.strips_all.find(
         strip.name
     )
     sync_settings.last_strip_scene_frame = inner_frame

@@ -27,4 +27,4 @@ Update the current master scene time when scrubbing/playing back in the Scene St
 Set the preview range of the Scene Strip's Scene to the current range of the active strip. This will be reflected in Scene playback and can be viewed in the Action Editor/Dope Sheet
 
 ### Active Follows Playhead
-Keep the current strip under the playhead as the active strip. This is useful when rapidly adjusting settings in the [strip properties editors](https://docs.blender.org/manual/en/latest/editors/properties_editor.html).
+Keep the current strip under the playhead as the active strip. This is useful when rapidly adjusting settings in the [strip properties editors](https://docs.blender.org/manual/en/latest/editors/properties_editor.html). For Metastrips, the inner scene strips will be set to active. 

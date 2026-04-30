@@ -7,7 +7,7 @@ nav_order: 6
 
 ## Batch Render Panel
 
-Rendering is the process of exporting the final frames of animation from the editing area into either Movie or Image files. This rendering workflow allows simple batch rendering of all or selected shots in the [Sequencer](https://docs.blender.org/manual/en/latest/editors/video_sequencer/sequencer/index.html). The render area allows for playback of the rendered images.
+Rendering is the process of exporting the final frames of animation from the editing area into either Movie or Image files. This rendering workflow allows simple batch rendering of all or selected shots in the [Sequencer](https://docs.blender.org/manual/en/latest/editors/video_sequencer/sequencer/index.html). The render area allows for playback of the rendered images. Batch Render system only considers strips that are used by the sync system; muted strips, or strips outside the frame range will be ignored by the Batch Render system.
 
 ![Batch Render Panel](media/batch_render_panel.jpg)
 
@@ -34,7 +34,9 @@ Define a custom file/folder naming scheme for each rendered Scene Strip. Variabl
 Only render the highlighted Scene Strips from the sequencer timeline.
 
 ### Output Scene
-The current timeline (or selected elements within the timeline) will be re-constructed in the output scene. Useful for either reviewing your renders directly within Blender. Additionally rendering your output scene (option below) will create a single media (Movie/Image Sequence) that represents the entire timeline. The outputs scene has several additional options:
+The current timeline (or selected elements within the timeline) will be re-constructed in the output scene. Useful for either reviewing your renders directly within Blender. Additionally rendering your output scene (option below) will create a single media (Movie/Image Sequence) that represents the entire timeline. *Note: Metastrips will not be reconstructed in the output scene, inner strips will still appear in output scene.*  
+
+The outputs scene has several additional options:
 
 - **Auto Offset Channels**: When rendering and re-rendering sequences, this option will always put new media on a higher channel, ensuring the current render doesn't overwrite any media that may already be in the Output Scene. 
 
