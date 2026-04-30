@@ -75,6 +75,8 @@ class SEQUENCE_UL_shot(bpy.types.UIList):
     def draw_item(
         self, context, layout, data, item, icon, active_data, active_propname
     ):
+        if item.mute:
+            return
         row = layout.row(align=True)
         subrow = row.row()
 
