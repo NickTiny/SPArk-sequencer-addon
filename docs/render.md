@@ -34,7 +34,7 @@ Define a custom file/folder naming scheme for each rendered Scene Strip. Variabl
 Only render the highlighted Scene Strips from the sequencer timeline.
 
 ### Output Scene
-The current timeline (or selected elements within the timeline) will be re-constructed in the output scene. Useful for either reviewing your renders directly within Blender. Additionally rendering your output scene (option below) will create a single media (Movie/Image Sequence) that represents the entire timeline. *Note: Metastrips are not reconstructed in the output scene.*  
+The current timeline (or selected elements within the timeline) will be re-constructed in the output scene. Useful for either reviewing your renders directly within Blender. Additionally rendering your output scene (option below) will create a single media (Movie/Image Sequence) that represents the entire timeline. *Note: Metastrips will not be reconstructed in the output scene, inner strips will still appear in output scene.*  
 
 The outputs scene has several additional options:
 
