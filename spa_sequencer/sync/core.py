@@ -217,7 +217,7 @@ def get_scene_strip_at_frame(
     if skip_muted:
         # Exclude strips from muted channels
         muted_channels = [idx for idx, channel in enumerate(channels) if channel.mute]
-        strips = [strip for strip in strips if not strip.channel in muted_channels]
+        base_strips = [strip for strip in strips if not strip.channel in muted_channels]
 
     strips = get_strips_at_frame(
         frame, strips, (bpy.types.SceneStrip, bpy.types.MetaStrip), skip_muted
