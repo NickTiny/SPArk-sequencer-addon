@@ -773,99 +773,12 @@ def make_meta_strip(
     return meta_strip
 
 
-def make_meta_strip(strips: List[bpy.types.SceneStrip], name:str, frame_start:int, channel:int) -> bpy.types.MetaStrip:
-    """Create Metastrip and populate it with given scene strips"""
-    sequence_editor = strips[0].id_data.sequence_editor
-    meta_strip : bpy.types.MetaStrip = sequence_editor.strips.new_meta(name=name, frame_start=frame_start, channel=channel)
-    for strip in strips:
-        strip.move_to_meta(meta_strip)
-    return meta_strip
-
-def make_meta_strip(strips: List[bpy.types.SceneStrip], name:str, frame_start:int, channel:int) -> bpy.types.MetaStrip:
-    """Create Metastrip and populate it with given scene strips"""
-    sequence_editor = strips[0].id_data.sequence_editor
-    meta_strip : bpy.types.MetaStrip = sequence_editor.strips.new_meta(name=name, frame_start=frame_start, channel=channel)
-    for strip in strips:
-        strip.move_to_meta(meta_strip)
-    return meta_strip
-
-def new_audition_strip(context:bpy.types, strips: List[bpy.types.SceneStrip]):
-    if not all(isinstance(s, bpy.types.SceneStrip) for s in strips):
-        raise TypeError("One or more selected strips are not scene strips")
-
-    left_handles = [strip.left_handle for strip in strips]
-    if not all(lh == left_handles[0] for lh in left_handles):
-        raise ValueError("All selected strips must share the same start frame")
-
-    # Use the longest strip as the active audition (ensyure new meta won't ovewrite anything)
-    active_strip = max(
-        strips,
-        key=lambda strip: strip.duration,
-    )
-    
-    # Create meta strip and move selected strips into it
-    meta_strip = make_meta_strip(strips, active_strip.name, active_strip.left_handle, active_strip.channel)
-    # meta_strip.right_handle = active_strip.right_handle
-    meta_strip.audition.is_audition = True
-    set_active_audition(context, meta_strip, active_strip)
-
-def get_audition_strip(strip:bpy.types.Strip) -> bpy.types.MetaStrip|None:
-    """From either the strip itself or it's parent meta, find the audition strip
-    containing the current strip."""
-    if strip is None:
-        return
-    
-    if isinstance(strip, bpy.types.MetaStrip) and strip.audition.is_audition:
-        return strip
-    
-    parent_strip = get_audition_strip(strip.parent_meta())
-    if parent_strip:
-        return parent_strip
-    
-def set_active_audition(
-    context:bpy.types.Context, audition_strip: bpy.types.MetaStrip, active_strip: bpy.types.SceneStrip, sync_update=True,
-):
-    """Set the name of the active audition strip and adjust timeline accordingly"""
-    for strip in audition_strip.strips:
-        if strip != active_strip:
-            strip.mute = True
-        else:
-            strip.mute = False
-
-    if active_strip.right_handle != audition_strip.right_handle:
-        offset = active_strip.right_handle - audition_strip.right_handle
-        adjust_shot_duration(audition_strip, offset)
-    audition_strip.audition.active = active_strip.name
-    audition_strip.name = f"Active: {active_strip.name}"
-    if sync_update:
-        sync_system_update(context, force=True)
-
-
-class AuditionStripProperties(bpy.types.PropertyGroup):
-    """Audition Strip Properties."""
-
-    active: bpy.props.StringProperty(
-        name="Active Audition Strip",
-        description="Audition the strip with this name as the current alternative take",
-        default="",
-    )
-    
-    is_audition: bpy.props.BoolProperty(
-        name="Is Audition Strip",
-        description="Wether meta strip is auditioning alternative takes",
-        default=False,
-    )
-
-classes = (AuditionStripProperties,)
-
-
 def register():
     register_classes(classes)
     bpy.types.Strip.audition = bpy.props.PointerProperty(
         type=AuditionStripProperties,
         name="Audition Strip Properties",
     )
-    pass
 
 
 def unregister():
