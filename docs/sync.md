@@ -1,6 +1,4 @@
-# Timeline Synchronization
-
-#---
+---
 title: Timeline Synchronization
 nav_order: 6
 ---
