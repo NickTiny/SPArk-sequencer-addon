@@ -41,7 +41,6 @@ Conform existing scene strips to the timing from a previously imported timeline.
 
 - **Reference Channel:** The channel containing the imported timeline to use as conformation reference.
 - **Target Channel:** The channel containing scene strips to apply the conformation to.
-- **Shot Prefix:** Prefix to use on newly created shots. 
 - **Shot ID Regex:** Naming pattern to extract shot name from Scene Strips.
 - **Freeze Frame Handles:** The duration of the handles found on the input media.
     - **Applied to Metadata:** Extend Scene Strip's internal range by the indicated Freeze Frame handles  (only using freeze frame handles). 
