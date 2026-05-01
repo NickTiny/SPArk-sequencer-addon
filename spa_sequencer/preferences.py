@@ -58,6 +58,7 @@ classes = (SPASequencerAddonPreferences,)
 
 def register():
     register_classes(classes)
+    update_jump_strip_keymap(get_addon_prefs(), None)
 
 
 def unregister():
