@@ -5,7 +5,7 @@ import pytest
 
 import bpy
 
-from utils import import_spa_sequencer_module
+from utils import import_spa_sequencer_module, get_module_name
 import_spa_sequencer_module()
 
 @pytest.fixture()
@@ -13,7 +13,7 @@ def addon():
     """Fixture loading/enabling the addon."""
     import addon_utils
 
-    return addon_utils.enable("spa_sequencer", persistent=True, default_set=True)
+    return addon_utils.enable(get_module_name(), persistent=True, default_set=True)
 
 
 @pytest.fixture()

@@ -69,8 +69,8 @@ def draw_shot_strip(
     strip_height = ui_scaled(STRIP_HEIGHT)
     base_y_pos = shot_baseline_y_pos(bpy.context)
 
-    frame_in = remap_frame_value(strip.frame_final_start, strip)
-    frame_out = remap_frame_value(strip.frame_final_end, strip)
+    frame_in = remap_frame_value(strip.left_handle, strip)
+    frame_out = remap_frame_value(strip.right_handle, strip)
     frame_in = region.view2d.view_to_region(frame_in, 0, clip=False)[0]
     frame_out = region.view2d.view_to_region(frame_out, 0, clip=False)[0]
     duration = frame_out - frame_in
@@ -249,8 +249,8 @@ class DOPESHEET_GGT_SequenceGizmos(bpy.types.GizmoGroup):
         if not strip:
             return
 
-        frame_in = remap_frame_value(strip.frame_final_start, strip)
-        frame_out = remap_frame_value(strip.frame_final_end, strip)
+        frame_in = remap_frame_value(strip.left_handle, strip)
+        frame_out = remap_frame_value(strip.right_handle, strip)
         frame_in = region.view2d.view_to_region(frame_in, 0, clip=False)[0]
         frame_out = region.view2d.view_to_region(frame_out, 0, clip=False)[0]
 

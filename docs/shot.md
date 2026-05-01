@@ -1,0 +1,70 @@
+---
+title: Shot Management
+nav_order: 3
+---
+
+# Shots
+
+## Shot Menu
+![Shot Menu](media/shot_menu.jpg)
+
+The SPArk Sequencer Shot Menu offers unique controls that differ from Blender's native operators. 
+
+### New Shot
+![New Shot](media/shot_new.jpg)
+
+
+To add a shot select **Shot > New** from the **Sequencer** Header Menu. **Use Existing** will copy the Scene from the active strip. When a Metastrip is open in the Sequencer, the new shot will be placed inside it.
+
+- **Shot Name:** Set a Prefix/Number/Take: Use arrow to get the next available shot name.
+- **Scene:** Use existing (most cases) or create a new scene from a Template.
+- **Source:** Available scenes + templates (set in add-on preferences).
+- **Duration:** Set the duration in frames.
+- **Channel:** Select a row (aka channel) to place this new clip on, in the Sequencer.
+
+### Duplicate Shot
+When Duplicating a shot, the selected contents are appended to the end of your timeline, this also means that these clips are shifted in the Dope Sheet. To duplicate a shot without adjusting its timing use Blender's native [Strip Duplicate Operator](https://docs.blender.org/manual/en/latest/video_editing/edit/montage/editing.html#duplicate). When a Metastrip is open in the Sequencer, the duplicated shot will be placed inside it.
+
+
+### Delete Shot
+![Delete Shot](media/shot_delete.jpg)
+
+
+Each shot is associated with a scene. To delete a shot normally simply select Shot>Delete and leave Delete Scenes unchecked. To remove a shot and the associated scene use Shot>Delete and check the Delete Scenes option. Alternatively, see Blender's native [Strip Delete Operator](https://docs.blender.org/manual/en/latest/video_editing/edit/montage/editing.html#delete).
+
+**Warning:** The **Delete Scenes** option will remove associated Scene data from the outliner.
+
+### Adjust Shot’s Timing
+Adjust timing will change the length of a strip in the sequencer and in the Dope Sheet. This will also "push" strips on the same channel to accommodate timing changes.
+
+### Rename Shot
+![Rename Shot](media/shot_rename.jpg)
+
+To rename a shot use **Shot>Rename**. This will work on a single shot at a time, use the arrow to get the next available shot number. Check **Rename Scene** to also rename the scene associated with this strip.
+
+
+### Chronological Numbering
+![Chronological Numbering](media/shot_chronological.jpg)
+
+After editing your shot names may be out of order. To reset the numbering of all shots use **Shot>Cleanup>Chronological Numbering**. This will rename all shots based on the specified naming convention. Scenes can also be renamed by selecting a scene rename policy.
+
+Metastrips and Audition groups are supported: the Metastrip is assigned the next chronological shot name, and its inner strips receive take suffixes (A, B, C…) based on that name. The number of inner strips cannot exceed the number of available take letters.
+
+## Audition Menu
+![Audition Menu](media/audition_set_active.jpg)
+
+The **Audition** menu allows you to group multiple shots at the same position and audition them one at a time — useful for comparing alternative takes of the same shot.
+
+### Make Group
+Select two or more scene strips that share the same start frame, then use **Shot > Audition > Make Group**. The selected strips are wrapped into an audition group (a Metastrip). The longest strip becomes the initial active take, and all other strips are muted.
+
+**Requirements:**
+- At least two scene strips must be selected.
+- All selected strips must share the same start frame.
+
+### Set Active
+Use **Shot > Audition > Set Active** (or press **Ctrl+A**) to switch which strip is the currently active take in the audition group. A menu lists all strips inside the group; selecting one unmutes it, mutes the rest, and adjusts the group's duration to match the newly active strip. If the duration changes, strips on the same channel are retimed to accommodate, similar to [Adjust Shot's Timing](#adjust-shots-timing).
+
+### Ungroup
+Use **Shot > Audition > Ungroup** to dissolve the audition group back into individual strips in the sequencer (equivalent to Blender's native [UnMeta Strip](https://docs.blender.org/manual/en/latest/video_editing/edit/montage/meta.html#unmeta-strip) operator).
+

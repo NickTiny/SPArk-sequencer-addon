@@ -6,6 +6,7 @@ import bpy
 from pytest import fixture
 
 from spa_sequencer.sync.core import remap_frame_value, get_sync_settings, set_grease_pencil_brush
+from spa_sequencer.shot.core import make_meta_strip
 
 from utils import create_shot_scene
 
@@ -44,9 +45,9 @@ def complex_synced_setup(
     """
     edit_scene, shot_strip = basic_synced_setup
     shot_strip_1 = shot_strip
-    shot_strip_2 = create_shot_scene(edit_scene, 2, shot_strip.frame_final_start)
-    shot_strip_3 = create_shot_scene(edit_scene, 3, shot_strip.frame_final_start)
-    shot_strip_4 = create_shot_scene(edit_scene, 4, shot_strip.frame_final_start)
+    shot_strip_2 = create_shot_scene(edit_scene, 2, shot_strip.left_handle)
+    shot_strip_3 = create_shot_scene(edit_scene, 3, shot_strip.left_handle)
+    shot_strip_4 = create_shot_scene(edit_scene, 4, shot_strip.left_handle)
 
     return (edit_scene, [shot_strip_1, shot_strip_2, shot_strip_3, shot_strip_4])
 
@@ -55,7 +56,7 @@ def test_change_edit_time(basic_synced_setup):
     edit_scene, shot_strip = basic_synced_setup
 
     # Shorten the strip length
-    shot_strip.frame_final_duration = 10
+    shot_strip.duration = 10
 
     # Change edit scene's frame within shot's boundaries
     edit_frame = 4
@@ -106,7 +107,7 @@ def test_window_scene_sync(basic_synced_setup):
     edit_scene, shot_strip_1 = basic_synced_setup
 
     # Create a 2nd shot after the first one
-    create_shot_scene(edit_scene, 1, shot_strip_1.frame_final_end)
+    create_shot_scene(edit_scene, 1, shot_strip_1.right_handle)
 
     # Start the tests from a neutral scene
     bpy.context.window.scene = edit_scene
@@ -115,7 +116,7 @@ def test_window_scene_sync(basic_synced_setup):
     # Moving the edit frame to the start of each strip should
     # update window's scene accordingly.
     for strip in edit_scene.sequence_editor.strips:
-        edit_scene.frame_set(strip.frame_final_start)
+        edit_scene.frame_set(strip.left_handle)
         assert bpy.context.window.scene == strip.scene
 
 
@@ -138,7 +139,7 @@ def test_keep_gp_toolsettings(basic_synced_setup):
 
     # Shot 2
     # Create a GP object and assign the same materials as the first one
-    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.frame_final_end)
+    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.right_handle)
     bpy.context.window.scene = shot_strip_2.scene
     bpy.ops.object.grease_pencil_add(type="MONKEY")
     bpy.ops.object.mode_set(mode="PAINT_GREASE_PENCIL")
@@ -151,7 +152,7 @@ def test_keep_gp_toolsettings(basic_synced_setup):
 
     # Shot 3
     # Empty scene
-    shot_strip_3 = create_shot_scene(edit_scene, 1, shot_strip_2.frame_final_end)
+    shot_strip_3 = create_shot_scene(edit_scene, 1, shot_strip_2.right_handle)
     gp_settings_3 = shot_strip_3.scene.tool_settings.gpencil_paint
 
     # Start the tests from a neutral scene
@@ -159,14 +160,14 @@ def test_keep_gp_toolsettings(basic_synced_setup):
     edit_scene.frame_set(0)
 
     # Go to Shot 1 and change the active object's material
-    edit_scene.frame_set(shot_strip_1.frame_final_start)
+    edit_scene.frame_set(shot_strip_1.left_handle)
     gpencil_shot_1.active_material_index = 2
 
     # Go to Shot2
-    edit_scene.frame_set(shot_strip_2.frame_final_start)
+    edit_scene.frame_set(shot_strip_2.left_handle)
 
     # Go to Shot3
-    edit_scene.frame_set(shot_strip_3.frame_final_start)
+    edit_scene.frame_set(shot_strip_3.left_handle)
 
     # Check that grease pencil settings are identical for Shot 1 and 2
     assert gp_settings_2.brush == gp_settings_1.brush
@@ -192,11 +193,11 @@ def test_keep_gp_toolsettings_interaction_mode(basic_synced_setup):
 
     # Shot 2
     # Empty scene
-    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.frame_final_end)
+    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.right_handle)
 
     # Shot 3
     # Scene with a single GP object
-    shot_strip_3 = create_shot_scene(edit_scene, 1, shot_strip_2.frame_final_end)
+    shot_strip_3 = create_shot_scene(edit_scene, 1, shot_strip_2.right_handle)
     bpy.context.window.scene = shot_strip_3.scene
     bpy.ops.object.grease_pencil_add(type="MONKEY")
     gpencil_shot_3 = bpy.context.active_object
@@ -206,11 +207,11 @@ def test_keep_gp_toolsettings_interaction_mode(basic_synced_setup):
     edit_scene.frame_set(0)
 
     # Go to Shot 1: active GP object in paint mode
-    edit_scene.frame_set(shot_strip_1.frame_final_start)
+    edit_scene.frame_set(shot_strip_1.left_handle)
     # Go to Shot 2: no active object
-    edit_scene.frame_set(shot_strip_2.frame_final_start)
+    edit_scene.frame_set(shot_strip_2.left_handle)
     # Go to Shot 3: active GP object initially in object mode
-    edit_scene.frame_set(shot_strip_3.frame_final_start)
+    edit_scene.frame_set(shot_strip_3.left_handle)
     # Ensure GP mode was applied to the one in Shot 3, despite Shot 2 being empty
     assert gpencil_shot_1.mode == gpencil_shot_3.mode == interaction_mode
 
@@ -218,28 +219,28 @@ def test_keep_gp_toolsettings_interaction_mode(basic_synced_setup):
 def test_bidirectional_within_shot_range(basic_synced_setup):
     edit_scene, shot_strip_1 = basic_synced_setup
 
-    edit_scene.frame_set(shot_strip_1.frame_final_start)
+    edit_scene.frame_set(shot_strip_1.left_handle)
     assert bpy.context.window.scene == shot_strip_1.scene
     offset = 1
     shot_strip_1.scene.frame_set(shot_strip_1.scene.frame_current + offset)
-    assert edit_scene.frame_current == shot_strip_1.frame_final_start + offset
+    assert edit_scene.frame_current == shot_strip_1.left_handle + offset
 
 
 def test_bidirectional_outside_shot_range(basic_synced_setup):
     edit_scene, shot_strip_1 = basic_synced_setup
-    edit_scene.frame_set(shot_strip_1.frame_final_start)
+    edit_scene.frame_set(shot_strip_1.left_handle)
 
     # Go outside scene's range
     shot_strip_1.scene.frame_set(shot_strip_1.scene.frame_end + 10)
     # Master time should not have been updated
-    assert edit_scene.frame_current == shot_strip_1.frame_final_start
+    assert edit_scene.frame_current == shot_strip_1.left_handle
 
 
 def test_bidirectional_outside_shot_range_to_surrounding_shots(basic_synced_setup):
     edit_scene, shot_strip_1 = basic_synced_setup
-    edit_scene.frame_set(shot_strip_1.frame_final_start)
+    edit_scene.frame_set(shot_strip_1.left_handle)
     # Create another Shot right after Shot 1
-    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.frame_final_end)
+    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.right_handle)
 
     # From frame start, go outside scene's range within Shot 1 by one frame
     shot_strip_1.scene.frame_set(shot_strip_1.scene.frame_end + 1)
@@ -250,13 +251,13 @@ def test_bidirectional_outside_shot_range_to_surrounding_shots(basic_synced_setu
     # Go outside scene's range within Shot 1 by one frame
     shot_strip_1.scene.frame_set(shot_strip_1.scene.frame_end + 1)
     # Master time should have been update and Shot 2 should now be the active Shot
-    assert edit_scene.frame_current == shot_strip_2.frame_final_start
+    assert edit_scene.frame_current == shot_strip_2.left_handle
     assert bpy.context.window.scene == shot_strip_2.scene
 
     # Go back one frame before Shot 2 frame start
     shot_strip_2.scene.frame_set(shot_strip_2.scene.frame_start - 1)
     # Master time should have been updated and Shot 1 should not be active again
-    assert edit_scene.frame_current == shot_strip_1.frame_final_end - 1
+    assert edit_scene.frame_current == shot_strip_1.right_handle - 1
     assert bpy.context.window.scene == shot_strip_1.scene
 
 
@@ -265,9 +266,9 @@ def test_bidirectional_off(basic_synced_setup):
     sync_settings = get_sync_settings()
     sync_settings.bidirectional = False
 
-    edit_scene.frame_set(shot_strip_1.frame_final_start)
+    edit_scene.frame_set(shot_strip_1.left_handle)
     shot_strip_1.scene.frame_set(shot_strip_1.scene.frame_current + 10)
-    assert edit_scene.frame_current == shot_strip_1.frame_final_start
+    assert edit_scene.frame_current == shot_strip_1.left_handle
 
 
 def test_camera_strip(basic_synced_setup):
@@ -287,7 +288,7 @@ def test_camera_strip(basic_synced_setup):
         name=f"{shot_scene.name}_2",
         scene=shot_scene,
         channel=1,
-        frame_start=shot_strip_1.frame_final_end,
+        frame_start=shot_strip_1.right_handle,
     )
 
     # Define different cameras for each strip
@@ -295,10 +296,10 @@ def test_camera_strip(basic_synced_setup):
     shot_strip_2.scene_camera = cam2
 
     # Go to 1st strip: the scene should be using cam1 as active camera
-    edit_scene.frame_set(shot_strip_1.frame_final_start)
+    edit_scene.frame_set(shot_strip_1.left_handle)
     assert shot_scene.camera == shot_strip_1.scene_camera == cam1
     # Go to 2n strip: the scene should be using cam1 as active camera
-    edit_scene.frame_set(shot_strip_2.frame_final_start)
+    edit_scene.frame_set(shot_strip_2.left_handle)
     assert shot_scene.camera == shot_strip_2.scene_camera == cam2
 
 
@@ -328,10 +329,91 @@ def test_active_follows_playhead(basic_synced_setup):
     sync_settings = get_sync_settings()
     sync_settings.active_follows_playhead = True
 
-    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.frame_final_end + 1)
+    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.right_handle + 1)
 
+    edit_scene.frame_set(shot_strip_2.left_handle)
+    assert edit_scene.sequence_editor.active_strip == shot_strip_2
+
+
+def test_sync_meta_strip(basic_synced_setup):
+    """Test that sync resolves scene and frame correctly through nested meta strips."""
+    edit_scene, shot_strip_1 = basic_synced_setup
+    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.right_handle)
+
+    # Nest shot_strip_2 inside inner_meta, then inner_meta inside outer_meta
+    inner_meta = make_meta_strip([shot_strip_2], "INNER", shot_strip_2.left_handle, 1)
+    outer_meta = make_meta_strip([inner_meta], "OUTER", inner_meta.left_handle, 1)
+
+    bpy.context.window.scene = edit_scene
+    edit_scene.frame_set(0)
+
+    # Sync resolves the bare scene strip
+    edit_frame = shot_strip_1.left_handle
+    edit_scene.frame_set(edit_frame)
+    assert bpy.context.window.scene == shot_strip_1.scene
+    assert shot_strip_1.scene.frame_current == remap_frame_value(
+        edit_frame, shot_strip_1
+    )
+    # Sync resolves through both meta strips to shot_strip_2's scene
+    edit_frame = outer_meta.left_handle
+    edit_scene.frame_set(edit_frame)
+    assert bpy.context.window.scene == shot_strip_2.scene
+    assert shot_strip_2.scene.frame_current == remap_frame_value(
+        edit_frame, shot_strip_2
+    )
+
+
+def test_strip_jump_next(basic_synced_setup):
+    """Ensure the custom `sequence.strip_jump_anywhere` operator moves master frame to next strip."""    
+    edit_scene, shot_strip_1 = basic_synced_setup
+    
+    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.frame_final_end)
+
+    # Start from the first shot
+    edit_scene.frame_set(shot_strip_1.frame_final_start)
+
+    # Invoke our operator to jump to the next strip (using offset)
+    bpy.ops.sequence.strip_jump_anywhere(next=True)
+
+    # Master scene should now be at the second shot's start
+    assert edit_scene.frame_current == shot_strip_2.frame_final_start
+
+def test_strip_jump_previous(basic_synced_setup):
+    """Ensure the custom `sequence.strip_jump_anywhere` operator moves master frame to previous strip."""
+    edit_scene, shot_strip_1 = basic_synced_setup
+    
+    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.frame_final_start)
+    
     edit_scene.frame_set(shot_strip_2.frame_final_start)
     assert edit_scene.sequence_editor.active_strip == shot_strip_2
+
+
+def test_sync_meta_strip(basic_synced_setup):
+    """Test that sync resolves scene and frame correctly through nested meta strips."""
+    edit_scene, shot_strip_1 = basic_synced_setup
+    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.right_handle)
+
+    # Nest shot_strip_2 inside inner_meta, then inner_meta inside outer_meta
+    inner_meta = make_meta_strip([shot_strip_2], "INNER", shot_strip_2.left_handle, 1)
+    outer_meta = make_meta_strip([inner_meta], "OUTER", inner_meta.left_handle, 1)
+
+    bpy.context.window.scene = edit_scene
+    edit_scene.frame_set(0)
+
+    # Sync resolves the bare scene strip
+    edit_frame = shot_strip_1.left_handle
+    edit_scene.frame_set(edit_frame)
+    assert bpy.context.window.scene == shot_strip_1.scene
+    assert shot_strip_1.scene.frame_current == remap_frame_value(
+        edit_frame, shot_strip_1
+    )
+    # Sync resolves through both meta strips to shot_strip_2's scene
+    edit_frame = outer_meta.left_handle
+    edit_scene.frame_set(edit_frame)
+    assert bpy.context.window.scene == shot_strip_2.scene
+    assert shot_strip_2.scene.frame_current == remap_frame_value(
+        edit_frame, shot_strip_2
+    )
 
 
 def test_strip_jump_next(basic_synced_setup):

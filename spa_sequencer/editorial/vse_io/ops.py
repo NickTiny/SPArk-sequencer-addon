@@ -14,7 +14,7 @@ from ...utils import register_classes, unregister_classes, get_edit_scene
 from .core import (
     get_media_reference_filepath,
     sequencer_add_media_func,
-    strip_apply_frame_offsets,
+    strip_apply_handle_offsets,
 )
 
 
@@ -125,7 +125,7 @@ class IMPORT_OT_otio(bpy.types.Operator, ImportHelper):
             frame_start=insert_frame,
         )
         offset_start = otio.opentime.to_frames(clip.source_range.start_time)
-        strip_apply_frame_offsets(strip, insert_frame, duration, offset_start)
+        strip_apply_handle_offsets(strip, insert_frame, duration, offset_start)
         return strip
 
     def transcribe_otio_source_clip(
@@ -330,7 +330,7 @@ class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
         track.kind = kinds.pop()
 
         # Sort strips by frame start.
-        sorted_strip = sorted(strips, key=lambda x: x.frame_final_start)
+        sorted_strip = sorted(strips, key=lambda x: x.left_handle)
         # Initialize insert time using first strip start frame.
         # Getting first element is safe, sequences can not be empty here.
         insert_time = frame_start
@@ -338,12 +338,12 @@ class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
         # Iterate over strips.
         for strip in sorted_strip:
             # Add a gap if the clip is not starting right at current insertion time.
-            if insert_time < strip.frame_final_start:
-                gap_duration = strip.frame_final_start - insert_time
+            if insert_time < strip.left_handle:
+                gap_duration = strip.left_handle - insert_time
                 self.add_gap(track, insert_time, gap_duration, timeline_fps)
             # Add a clip to the track to represent current strip.
             self.add_clip(track, strip, timeline_fps)
-            insert_time = strip.frame_final_end
+            insert_time = strip.right_handle
 
         timeline.tracks.append(track)
         return track
@@ -408,12 +408,12 @@ class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
 
         # Compute strip internal offset.
         # TODO: Test for the sign of this offset when importing in other software.
-        offset = strip.frame_final_start - strip.frame_start
+        offset = strip.left_handle - strip.content_start
         clip = otio.schema.Clip(
             name=strip.name,
             source_range=otio.opentime.TimeRange(
                 start_time=RationalTime(offset, timeline_fps),
-                duration=RationalTime(strip.frame_final_duration, timeline_fps),
+                duration=RationalTime(strip.duration, timeline_fps),
             ),
         )
 
@@ -421,7 +421,7 @@ class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
             media_filepath,
             available_range=TimeRange(
                 start_time=RationalTime(0, media_fps),
-                duration=RationalTime(strip.frame_duration, media_fps),
+                duration=RationalTime(strip.content_duration, media_fps),
             ),
         )
 

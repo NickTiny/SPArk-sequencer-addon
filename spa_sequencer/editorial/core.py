@@ -14,12 +14,12 @@ class StripsGroup(NamedTuple):
     @property
     def frame_start(self):
         """First frame of that group."""
-        return self.strips[0].frame_final_start if self.strips else 0
+        return self.strips[0].left_handle if self.strips else 0
 
     @property
     def frame_end(self):
         """Last frame of that group."""
-        return self.strips[-1].frame_final_end if self.strips else 0
+        return self.strips[-1].right_handle if self.strips else 0
 
     @property
     def frame_duration(self):
