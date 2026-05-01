@@ -284,17 +284,17 @@ class SEQUENCE_OT_strip_jump(bpy.types.Operator):
 
     This operator is keymapped to PageUp/PageDown by default and will allow
     jumping to the next/previous strip in the master scene's sequencer, when the
-    mouse is outside of the sequencer area.
+    mouse is inside the 3D Viewport.
     """
 
-    bl_idname = "sequence.strip_jump_anywhere"
+    bl_idname = "sequence.strip_jump_viewport"
     bl_label = "Jump Strip"
     bl_description = "Jump to the next/previous strip"
     bl_options = {"UNDO", "INTERNAL"}
 
     bl_keymaps_defaults = {
-        "space_type": "EMPTY",
-        "category_name": "Frames",
+        "space_type": "VIEW_3D",
+        "category_name": "3D View Generic",
     }
     bl_keymaps = [
         {"key": "PAGE_UP", "value": "PRESS", "properties": {"next": False}},
