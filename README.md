@@ -12,10 +12,10 @@ Features:
 - Shared folders (collection linking between scenes).
 
 ## User Guide
-- Find the latest releases here: https://github.com/NickTiny/SPArk-sequencer-addon/releases
+- Follow the [Installation Guide](https://nicktiny.github.io/SPArk-sequencer-addon/installation.html) to install the Add-On
+- Find the full [User documentation](https://nicktiny.github.io/SPArk-sequencer-addon/) to learn more.
 - Template Blender File [Demo Blend File.zip](https://github.com/NickTiny/SPArk-sequencer-addon/files/10558102/Demo.Startup.File.zip)
-- User documentation from the source project is available [here](https://the-spa-studios.github.io/blender-spa-userdoc/).
-- To install opentimelineio follow [these instructions](https://gitlab.com/superprod/stax_suite/vse_io/-/blob/master/README.md#setup)
+- To install opentimelineio follow [these instructions](CONTRIBUTING.md#installing-opentimelineio)
 
 ## License
 

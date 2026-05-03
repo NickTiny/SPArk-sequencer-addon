@@ -34,7 +34,7 @@ def basic_render_setup() -> tuple[bpy.types.Scene, bpy.types.SceneStrip]:
         shot_scene.camera = bpy.context.active_object
 
     # Set shot strip duration to just 1 frame for fast testing
-    shot_strip.frame_final_duration = 1
+    shot_strip.duration = 1
 
     # Switch back to edit scene
     bpy.context.window.scene = edit_scene
