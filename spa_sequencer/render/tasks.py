@@ -297,14 +297,14 @@ class StripRenderTask(BaseRenderTask):
             name=os.path.basename(bpy.path.abspath(img_path)),
             filepath=img_path,
             channel=scene_strip.channel + channel_offset,
-            frame_start=scene_strip.frame_final_start,
+            frame_start=scene_strip.left_handle,
         )
                
-        if scene_strip.frame_final_duration <= 1:
+        if scene_strip.duration <= 1:
             return strip
                
         # First frame already include start from second frame
-        for idx in range(1, scene_strip.frame_final_duration):
+        for idx in range(1, scene_strip.duration):
             frame_number = scene_strip.scene.frame_start + idx 
             img_path = scene_strip.scene.render.frame_path(frame=frame_number)
             strip.elements.append(os.path.basename(bpy.path.abspath(img_path)))
