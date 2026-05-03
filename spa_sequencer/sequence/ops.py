@@ -293,8 +293,8 @@ class SEQUENCE_OT_strip_jump(bpy.types.Operator):
     bl_options = {"UNDO", "INTERNAL"}
 
     bl_keymaps_defaults = {
-        "space_type": "VIEW_3D",
-        "category_name": "3D View Generic",
+        "space_type": "EMPTY",
+        "category_name": "Frames",
     }
     bl_keymaps = [
         {"key": "PAGE_UP", "value": "PRESS", "properties": {"next": False}},
