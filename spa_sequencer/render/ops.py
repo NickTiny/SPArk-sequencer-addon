@@ -524,6 +524,7 @@ class SEQUENCER_OT_new_output_scene(bpy.types.Operator):
             new_output_scene.view_settings.use_curve_mapping = False
 
         # Copy display/view settings from edit scene
+        # This is meant to copy all the settings in the Color Management tab in the UI
         else:
             for prop in edit_scene.display_settings.bl_rna.properties:
                 if prop.is_readonly:
