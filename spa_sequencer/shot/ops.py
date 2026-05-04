@@ -1014,6 +1014,45 @@ class SEQUENCER_OT_set_shot_audition(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class SEQUENCER_OT_shot_copy_targets_to_selected(bpy.types.Operator):
+    bl_idname = "sequencer.shot_copy_targets_to_selected"
+    bl_label = "Copy Targets to Selected"
+    bl_description = (
+        "Copy the Scene and Camera from the active strip to all selected strips"
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context: bpy.types.Context):
+        sed = get_edit_scene(context).sequence_editor
+        if not sed:
+            return False
+        active = sed.active_strip
+        if not isinstance(active, bpy.types.SceneStrip):
+            cls.poll_message_set("Active strip must be a Scene Strip")
+            return False
+        if not any(
+            s for s in sed.strips
+            if s.select and s != active and isinstance(s, bpy.types.SceneStrip)
+        ):
+            cls.poll_message_set("No other selected Scene Strips to copy to")
+            return False
+        return True
+
+    def execute(self, context: bpy.types.Context):
+        sed = get_edit_scene(context).sequence_editor
+        active = sed.active_strip
+        targets = [
+            s for s in sed.strips
+            if s.select and s != active and isinstance(s, bpy.types.SceneStrip)
+        ]
+        for strip in targets:
+            strip.scene = active.scene
+            strip.scene_camera = active.scene_camera
+        self.report({"INFO"}, f"Copied targets to {len(targets)} strip(s).")
+        return {"FINISHED"}
+
+
 classes = (
     SEQUENCER_OT_shot_new,
     SEQUENCER_OT_shot_duplicate,
@@ -1024,6 +1063,7 @@ classes = (
     SEQUENCER_OT_new_shot_audition,
     SEQUENCER_OT_shot_audition_set_menu,
     SEQUENCER_OT_set_shot_audition,
+    SEQUENCER_OT_shot_copy_targets_to_selected,
 )
 
 
