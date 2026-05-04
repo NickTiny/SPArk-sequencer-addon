@@ -61,6 +61,10 @@ The 3D Viewport and Dope Sheet timeline interfaces can be synchronized with the 
 1. Navigation with arrow keys in the [Dope Sheet](dopesheet.md) to jump between shots.
 1. Playback / Scrubbing in the Sequencer area, ensure [Synchronization](sync.md#synchronize-operator) is enabled.
 
+**Short Cuts**
+- `Shift` + `Spacebar` to playback master scene from any region.
+- `PageUp`/`PageDown` to jump to the next / previous strip from any region.
+
 ## Modify a Shot Camera/Scene
 Each shot in the sequencer is linked to a scene and a camera. You can see a list of these shots and their corresponding data under the sequencer viewport panel. This is a comprehensive list of all the shots in your edit, the highlighted shot being the active shot on the current frame.
 

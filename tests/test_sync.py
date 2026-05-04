@@ -361,3 +361,28 @@ def test_sync_meta_strip(basic_synced_setup):
     assert shot_strip_2.scene.frame_current == remap_frame_value(
         edit_frame, shot_strip_2
     )
+
+
+def test_strip_jump_next(basic_synced_setup):
+    """Ensure the custom `sequence.strip_jump_viewport` operator moves master frame to next strip."""    
+    edit_scene, shot_strip_1 = basic_synced_setup
+    
+    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.frame_final_end)
+
+    # Start from the first shot
+    edit_scene.frame_set(shot_strip_1.frame_final_start)
+
+    # Invoke our operator to jump to the next strip (using offset)
+    bpy.ops.sequence.strip_jump_viewport(next=True)
+
+    # Master scene should now be at the second shot's start
+    assert edit_scene.frame_current == shot_strip_2.frame_final_start
+
+def test_strip_jump_previous(basic_synced_setup):
+    """Ensure the custom `sequence.strip_jump_viewport` operator moves master frame to previous strip."""
+    edit_scene, shot_strip_1 = basic_synced_setup
+    
+    shot_strip_2 = create_shot_scene(edit_scene, 1, shot_strip_1.frame_final_start)
+    
+    edit_scene.frame_set(shot_strip_2.frame_final_start)
+    assert edit_scene.sequence_editor.active_strip == shot_strip_2
