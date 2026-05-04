@@ -548,6 +548,7 @@ class SequenceRenderTask(BaseRenderTask):
         filepath += f".{file_ext}"
         # Setup render settings
         render = self.scene.render
+        self.overrides.set(render.image_settings, "media_type", "VIDEO")
         self.overrides.set(render.image_settings, "file_format", "FFMPEG")
         self.overrides.set(render.ffmpeg, "format", file_format)
         self.overrides.set(render.ffmpeg, "constant_rate_factor", "PERC_LOSSLESS")

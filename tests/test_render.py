@@ -68,11 +68,11 @@ def _render_with_engine(basic_render_setup, engine_name, media_type="IMAGES"):
 def test_workbench_render_images(basic_render_setup):
     """Test rendering with Workbench engine."""
     _render_with_engine(basic_render_setup, "BLENDER_WORKBENCH")
-    
+
 def test_eevee_render_images(basic_render_setup):
     """Test rendering with Eevee engine."""
     _render_with_engine(basic_render_setup, BLENDER_EEVEE)
-    
+
 def test_cycles_render_images(basic_render_setup):
     """Test rendering with Cycles engine."""
     _render_with_engine(basic_render_setup, "CYCLES")
@@ -80,7 +80,36 @@ def test_cycles_render_images(basic_render_setup):
 def test_movie_after_images(basic_render_setup):
     """Test rendering with Workbench engine."""
     _render_with_engine(basic_render_setup, "BLENDER_WORKBENCH", media_type="MOVIE")
-    
+
 def test_images_after_movie(basic_render_setup):
     """Test rendering with Workbench engine."""
     _render_with_engine(basic_render_setup, "BLENDER_WORKBENCH", media_type="IMAGES")
+
+
+def test_render_with_output_scene(basic_render_setup):
+    """Test batch render with output scene and render_output_scene enabled."""
+    edit_scene, shot_strip = basic_render_setup
+
+    # Create output scene (sequence editor will be created by the operator)
+    output_scene = bpy.data.scenes.new(name="OUTPUT")
+
+    render_options = edit_scene.batch_render_options
+    render_options.render_engine = "BLENDER_WORKBENCH"
+    render_options.media_type = "IMAGES"
+    render_options.resolution = "25"
+    render_options.output_scene = output_scene
+    render_options.render_output_scene = True
+    render_options.output_set_color = False
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        render_options.filepath_pattern = os.path.join(temp_dir, "{strip}")
+        render_options.output_render_filepath_pattern = os.path.join(
+            temp_dir, "{scene}"
+        )
+
+        edit_scene.sequence_editor.active_strip = shot_strip
+        shot_strip.select = True
+        render_options.selection_only = True
+
+        result = bpy.ops.sequencer.batch_render()
+        assert result == {"FINISHED"}
