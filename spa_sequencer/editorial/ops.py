@@ -152,12 +152,6 @@ class SEQUENCER_OT_edit_conform_shots_from_editorial(bpy.types.Operator):
         default=2,
     )
 
-    shot_prefix: bpy.props.EnumProperty(
-        name="Shot Prefix",
-        description="Shot prefix",
-        items=get_shot_prefix_enum,
-    )
-
     shot_id_regex: bpy.props.StringProperty(
         name="Shot ID Regex",
         description="Single capture group regex to extract shot id from panel names",
@@ -192,7 +186,6 @@ class SEQUENCER_OT_edit_conform_shots_from_editorial(bpy.types.Operator):
         self.layout.use_property_split = True
         self.layout.prop(self, "ref_channel")
         self.layout.prop(self, "target_channel")
-        self.layout.prop(self, "shot_prefix")
         self.layout.prop(self, "shot_id_regex")
         box = self.layout.box()
         box.prop(self, "freeze_frame_handles", expand=True)
