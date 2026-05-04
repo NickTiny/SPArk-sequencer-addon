@@ -55,7 +55,7 @@ Operator to copy the current Master Scene's render settings and setup a new blan
 
 - **Name**: The desired name of your output scene. If naming conflict is found Blender will add a .001 to the end of your scene's name.
 
-- **Use Default Color**: If enabled set the color management of the new output scene to SPArk defaults. These are default values ensure renders appear correctly in the Output Scene.
+- **Use Default Color**: Default Color, is meant to replicate the color management settings of Blender's video editing template. When rendering the View Transform (AgX, Filmic, etc) is baked into the output .JPEG/MOV files. To properly represent renders in the Output the below color settings are used. If disabled the [Color Management](https://docs.blender.org/manual/en/4.0/render/color_management.html) will be copied from the [Master Scene](sync.md#master-scene).
     - `Display Device = sRGB`
     - `View Transform = Standard`
     - `Look = None`
