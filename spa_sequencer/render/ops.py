@@ -502,7 +502,11 @@ class SEQUENCER_OT_new_output_scene(bpy.types.Operator):
         for prop in edit_scene.render.bl_rna.properties:
             if prop.is_readonly:
                 continue
-            setattr(new_output_scene.render, prop.identifier, getattr(edit_scene.render, prop.identifier))
+            setattr(
+                new_output_scene.render,
+                prop.identifier,
+                getattr(edit_scene.render, prop.identifier),
+            )
 
         # Copy scene frame range.
         new_output_scene.frame_start = edit_scene.frame_start
