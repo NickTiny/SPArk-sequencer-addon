@@ -512,10 +512,6 @@ class SEQUENCER_OT_new_output_scene(bpy.types.Operator):
 
         # Optionally apply color management defaults for video editing.
         if self.set_color_management:
-            # AgX look names include the transform prefix, so clear it first
-            # before switching view transform to avoid attribute errors.
-            if getattr(new_output_scene.view_settings, "view_transform") == "AgX":
-                new_output_scene.view_settings.look = "None"
             new_output_scene.display_settings.display_device = "sRGB"
             new_output_scene.view_settings.look = "None"
             new_output_scene.view_settings.view_transform = "Standard"
