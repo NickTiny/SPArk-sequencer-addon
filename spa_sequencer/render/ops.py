@@ -483,10 +483,9 @@ class SEQUENCER_OT_new_output_scene(bpy.types.Operator):
     def poll(cls, context: bpy.types.Context):
         master_scene = get_sync_settings().master_scene
         return bool(master_scene and master_scene.sequence_editor)
-    
+
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
-
 
     def draw(self, context: bpy.types.Context):
         self.layout.use_property_split = True
@@ -519,6 +518,25 @@ class SEQUENCER_OT_new_output_scene(bpy.types.Operator):
             new_output_scene.view_settings.gamma = 1.0
             new_output_scene.sequencer_colorspace_settings.name = "sRGB"
             new_output_scene.view_settings.use_curve_mapping = False
+
+        # Copy display/view settings from edit scene
+        else:
+            for prop in edit_scene.display_settings.bl_rna.properties:
+                if prop.is_readonly:
+                    continue
+                setattr(
+                    new_output_scene.display_settings,
+                    prop.identifier,
+                    getattr(edit_scene.display_settings, prop.identifier),
+                )
+            for prop in edit_scene.view_settings.bl_rna.properties:
+                if prop.is_readonly:
+                    continue
+                setattr(
+                    new_output_scene.view_settings,
+                    prop.identifier,
+                    getattr(edit_scene.view_settings, prop.identifier),
+                )
 
         # Ensure the output scene has a sequence editor.
         if not new_output_scene.sequence_editor:
