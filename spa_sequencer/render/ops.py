@@ -471,7 +471,7 @@ class SEQUENCER_OT_new_output_scene(bpy.types.Operator):
     )
 
     set_color_management: bpy.props.BoolProperty(
-        name="Set Color Management",
+        name="Use Default Color",
         description=(
             "Set color management to SPArk Output scene defaults "
             "(Standard view transform, sRGB color space)"
@@ -489,6 +489,7 @@ class SEQUENCER_OT_new_output_scene(bpy.types.Operator):
 
 
     def draw(self, context: bpy.types.Context):
+        self.layout.use_property_split = True
         self.layout.prop(self, "scene_name")
         self.layout.prop(self, "set_color_management")
 
