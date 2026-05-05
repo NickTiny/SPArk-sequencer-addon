@@ -200,6 +200,8 @@ class StripRenderTask(BaseRenderTask):
         self.overrides.set(scene.render, "resolution_y", r_height)
         self.overrides.set(scene.render, "resolution_percentage", 100)
         self.overrides.set(scene.render, "use_sequencer", False)
+        self.overrides.set(scene.render, "use_overwrite", render_options.use_overwrite)
+        self.overrides.set(scene.render, "use_placeholder", render_options.use_placeholder)
 
         if strip.scene_camera:
             self.overrides.set(scene, "camera", strip.scene_camera)
