@@ -34,6 +34,10 @@ Each shot is associated with a scene. To delete a shot normally simply select Sh
 
 **Warning:** The **Delete Scenes** option will remove associated Scene data from the outliner.
 
+## Copy Targets to Selected
+Copy the Scene Camera and Target Scene from the Active Strip to the selected strips.
+
+
 ### Adjust Shot’s Timing
 Adjust timing will change the length of a strip in the sequencer and in the Dope Sheet. This will also "push" strips on the same channel to accommodate timing changes.
 

@@ -31,6 +31,8 @@ class SEQUENCER_MT_shot(bpy.types.Menu):
         layout.operator("sequencer.shot_duplicate")
         layout.operator("sequencer.shot_delete", text="Delete...")
         layout.separator()
+        layout.operator("sequencer.shot_copy_targets_to_selected")
+        layout.separator()
         layout.menu("SEQUENCER_MT_shot_audition")
         layout.separator()
         layout.operator("sequencer.shot_rename", text="Rename...")
