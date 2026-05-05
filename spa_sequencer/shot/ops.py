@@ -22,6 +22,7 @@ from ..sync.core import (
     get_sync_master_strip,
     get_sync_settings,
     remap_frame_value,
+    sync_system_update,
 )
 from ..utils import get_edit_scene, register_classes, unregister_classes
 
@@ -1058,6 +1059,7 @@ class SEQUENCER_OT_shot_copy_targets_to_selected(bpy.types.Operator):
                 strip = strip.strips.get(strip.audition.active)
             strip.scene = active.scene
             strip.scene_camera = active.scene_camera
+        sync_system_update(context, force=True)
         self.report({"INFO"}, f"Copied targets to {len(targets)} strip(s).")
         return {"FINISHED"}
 
