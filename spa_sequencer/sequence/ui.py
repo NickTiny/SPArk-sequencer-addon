@@ -143,8 +143,10 @@ class VIEW3D_PT_sequence(bpy.types.Panel):
 
         # Draw shot lists in the master sequence.
         self.draw_shots_list(context, master_scene.sequence_editor)
-        # Draw active shot details if any.
-        if strip := get_sync_master_strip(use_cache=True)[0]:
+        # Draw available active shot details if window scene is strip scene.
+        if (
+            strip := get_sync_master_strip(use_cache=True)[0]
+        ) and strip.scene == context.scene:
             self.draw_shot_strip(context, strip)
 
     def draw_shots_list(self, context, sed):
@@ -208,7 +210,7 @@ class VIEW3D_PT_sequence(bpy.types.Panel):
                 text="",
             )
             props.camera = context.scene.camera.name
-        
+
         # FIXME : Don't know what this unkown ops is suppose que to do
         # row = col.row()
         # row.operator("scene.camera_select", icon="RESTRICT_SELECT_OFF", text="Select")
