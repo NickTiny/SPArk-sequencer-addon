@@ -455,7 +455,109 @@ class SEQUENCER_OT_batch_render(bpy.types.Operator):
         self.global_overrides.revert()
 
 
-classes = (SEQUENCER_OT_batch_render,)
+class SEQUENCER_OT_new_output_scene(bpy.types.Operator):
+    bl_idname = "sequencer.new_output_scene"
+    bl_label = "New Output Scene"
+    bl_description = (
+        "Create or configure a new output scene by copying render settings"
+        "from the current master scene"
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    scene_name: bpy.props.StringProperty(
+        name="Name",
+        description="Name for the new output scene",
+        default="RENDER",
+    )
+
+    set_color_management: bpy.props.BoolProperty(
+        name="Use Default Color",
+        description=(
+            "Set color management to SPArk Output scene defaults "
+            "(Standard view transform, sRGB color space)"
+        ),
+        default=True,
+    )
+
+    @classmethod
+    def poll(cls, context: bpy.types.Context):
+        master_scene = get_sync_settings().master_scene
+        return bool(master_scene and master_scene.sequence_editor)
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context: bpy.types.Context):
+        self.layout.use_property_split = True
+        self.layout.prop(self, "scene_name")
+        self.layout.prop(self, "set_color_management")
+
+    def execute(self, context: bpy.types.Context):
+        edit_scene = get_sync_settings().master_scene
+
+        # Create new output scene.
+        new_output_scene = bpy.data.scenes.new(self.scene_name)
+
+        # Copy all RenderSettings from the master scene.
+        for prop in edit_scene.render.bl_rna.properties:
+            if prop.is_readonly:
+                continue
+            setattr(
+                new_output_scene.render,
+                prop.identifier,
+                getattr(edit_scene.render, prop.identifier),
+            )
+
+        # Copy scene frame range.
+        new_output_scene.frame_start = edit_scene.frame_start
+        new_output_scene.frame_end = edit_scene.frame_end
+        new_output_scene.frame_step = edit_scene.frame_step
+
+        # Optionally apply color management defaults for video editing.
+        if self.set_color_management:
+            new_output_scene.display_settings.display_device = "sRGB"
+            new_output_scene.view_settings.look = "None"
+            new_output_scene.view_settings.view_transform = "Standard"
+            new_output_scene.view_settings.exposure = 0.0
+            new_output_scene.view_settings.gamma = 1.0
+            new_output_scene.sequencer_colorspace_settings.name = "sRGB"
+            new_output_scene.view_settings.use_curve_mapping = False
+
+        # Copy display/view settings from edit scene
+        # This is meant to copy all the settings in the Color Management tab in the UI
+        else:
+            for prop in edit_scene.display_settings.bl_rna.properties:
+                if prop.is_readonly:
+                    continue
+                setattr(
+                    new_output_scene.display_settings,
+                    prop.identifier,
+                    getattr(edit_scene.display_settings, prop.identifier),
+                )
+            for prop in edit_scene.view_settings.bl_rna.properties:
+                if prop.is_readonly:
+                    continue
+                setattr(
+                    new_output_scene.view_settings,
+                    prop.identifier,
+                    getattr(edit_scene.view_settings, prop.identifier),
+                )
+
+        # Ensure the output scene has a sequence editor.
+        if not new_output_scene.sequence_editor:
+            new_output_scene.sequence_editor_create()
+
+        # Set as the output scene.
+        edit_scene.batch_render_options.output_scene = new_output_scene
+
+        self.report({"INFO"}, f"Output scene set to '{new_output_scene.name}'.")
+        return {"FINISHED"}
+
+
+classes = (
+    SEQUENCER_OT_batch_render,
+    SEQUENCER_OT_new_output_scene,
+)
 
 
 def register():
