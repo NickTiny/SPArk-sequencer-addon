@@ -7,6 +7,7 @@ from ..sync.core import sync_system_update
 # Maps original Object -> action-copied Object, used for camera remapping.
 ActionManifest = dict[bpy.types.Object, bpy.types.Object]
 
+
 # Core Helpers
 def obj_has_animation(obj: bpy.types.Object) -> bool:
     """Return True if *obj* carries an action or any NLA tracks."""
@@ -30,6 +31,7 @@ def col_has_animated_objects(col: bpy.types.Collection) -> bool:
             return True
     return False
 
+
 # Object Level
 def action_copy_object(obj: bpy.types.Object) -> bpy.types.Object:
     """Create a linked duplicate of *obj* with independent animation data.
@@ -37,17 +39,14 @@ def action_copy_object(obj: bpy.types.Object) -> bpy.types.Object:
     """
 
     new_obj = obj.copy()
-    # obj.copy() keeps new_obj.data pointing at the same mesh ID → shared ✓
 
     anim = new_obj.animation_data
     if anim is None:
         return new_obj
 
-    # Detach the active action so it is independent.
     if anim.action:
         anim.action = anim.action.copy()
 
-    # Detach actions referenced by every NLA strip.
     for track in anim.nla_tracks:
         for strip in track.strips:
             if strip.action:
@@ -56,36 +55,57 @@ def action_copy_object(obj: bpy.types.Object) -> bpy.types.Object:
     return new_obj
 
 
-# Collection Level
-def action_copy_collection(
+# Manifest Helpers
+def _col_has_manifest_objects(
+    col: bpy.types.Collection,
+    manifest: ActionManifest,
+) -> bool:
+    for obj in col.objects:
+        if obj in manifest:
+            return True
+    for child in col.children:
+        if _col_has_manifest_objects(child, manifest):
+            return True
+    return False
+
+
+def _copy_collection_from_manifest(
     col: bpy.types.Collection,
     manifest: ActionManifest,
 ) -> bpy.types.Collection:
-    """Build a new collection that mirrors input but has action copy objects.
-
-    Static objects and child collections remain as original links. Animated
-    objects are duplicated (and all the ancestor collections).
-
-    Doesn't handle linking collection to scene.
+    """Create a collection if any children are animated or contain animated objs.
+    Static objects and unaffected child collections remain as original links.
+    Doesn't handle linking the result to a scene or parent collection.
     """
     new_col = bpy.data.collections.new(col.name)
 
     for obj in col.objects:
-        if obj_has_animation(obj):
-            new_obj = action_copy_object(obj)
-            manifest[obj] = new_obj
-            new_col.objects.link(new_obj)
-        else:
-            new_col.objects.link(obj)
+        new_col.objects.link(manifest.get(obj, obj))
 
     for child in col.children:
-        if col_has_animated_objects(child):
-            new_child = action_copy_collection(child, manifest)
-            new_col.children.link(new_child)
+        if _col_has_manifest_objects(child, manifest):
+            new_col.children.link(_copy_collection_from_manifest(child, manifest))
         else:
             new_col.children.link(child)
 
     return new_col
+
+
+def _apply_manifest_to_scene(
+    scene: bpy.types.Scene,
+    manifest: ActionManifest,
+) -> None:
+    """Replace collections objects in scene."""
+    for col in list(scene.collection.children):
+        if _col_has_manifest_objects(col, manifest):
+            new_col = _copy_collection_from_manifest(col, manifest)
+            scene.collection.children.unlink(col)
+            scene.collection.children.link(new_col)
+
+    for obj in list(scene.collection.objects):
+        if obj in manifest:
+            scene.collection.objects.unlink(obj)
+            scene.collection.objects.link(manifest[obj])
 
 
 # Scene Level
@@ -101,29 +121,23 @@ def action_copy_scene(
     to scene collection are also checked.
     """
     with context.temp_override(scene=ref_scene):
-        bpy.ops.scene.new('LINK_COPY')
+        bpy.ops.scene.new(type='LINK_COPY')
 
     new_scene: bpy.types.Scene = context.scene
     new_scene.name = name
 
     manifest: ActionManifest = {}
 
-    for col in ref_scene.collection.children:
-        if col_has_animated_objects(col):
-            # Populate object manifest
-            new_col = action_copy_collection(col, manifest)
+    def _collect(col: bpy.types.Collection) -> None:
+        for obj in col.objects:
+            if obj_has_animation(obj) and obj not in manifest:
+                manifest[obj] = action_copy_object(obj)
+        for child in col.children:
+            _collect(child)
 
-            # Replace collections
-            new_scene.collection.children.link(new_col)
-            new_scene.collection.children.unlink(col)
+    _collect(ref_scene.collection)
 
-    for obj in ref_scene.collection.objects:
-        if obj_has_animation(obj):
-            new_obj = action_copy_object(obj)
-            # TODO perhaps manifest isn't needed if it's only used for camera?
-            manifest[obj] = new_obj  # Populate manifest incase scene camera is here
-            new_scene.collection.objects.link(new_obj)
-            new_scene.collection.objects.unlink(new_obj)
+    _apply_manifest_to_scene(new_scene, manifest)
 
     new_scene.camera = manifest.get(ref_scene.camera, ref_scene.camera)
 
@@ -131,89 +145,16 @@ def action_copy_scene(
     return new_scene
 
 
-# Object Copy Operator Helpers
-def _find_object_collection_paths(
-    scene: bpy.types.Scene,
-    obj: bpy.types.Object,
-) -> list[list[bpy.types.Collection]]:
-    """Return one path [scene.collection, …, parent] for every collection that
-    directly contains *obj*, found in a single tree traversal."""
-    paths: list[list[bpy.types.Collection]] = []
-
-    def _walk(col: bpy.types.Collection, current: list[bpy.types.Collection]) -> None:
-        path = current + [col]
-        if obj.name in col.objects:
-            paths.append(path)
-        for child in col.children:
-            _walk(child, path)
-
-    _walk(scene.collection, [])
-    return paths
-
-
-def _shallow_duplicate_collection(
-    col: bpy.types.Collection,
-    old_obj: bpy.types.Object,
-    new_obj: bpy.types.Object,
-) -> bpy.types.Collection:
-    """Replace collection with action collection"""
-    # TODO Not sure if we need this maybe just used the main collection copy... hmmm
-    new_col = bpy.data.collections.new(col.name)
-    for o in col.objects:
-        new_col.objects.link(new_obj if o == old_obj else o)
-    for child in col.children:
-        new_col.children.link(child)
-    return new_col
-
-
-# NOTE: This is a bit confused now it's all laid out.
-# I think that this function because it more gracefully handles
-# Multiple objects should be out main engine. TBD consoildation.
-# TODO Need a list test senarios to verify the logic here...
+# Object Copy in Scene
 def action_copy_object_in_scene(
     context: bpy.types.Context,
     scene: bpy.types.Scene,
     objs: list[bpy.types.Object],
 ) -> list[bpy.types.Object]:
-    # TODO docstring
-    # Implementation for object action copy operator
-    # Commenting out for now....
-    new_objs: list[bpy.types.Object] = []
+    #  TODOO  docstring
+    manifest: ActionManifest = {obj: action_copy_object(obj) for obj in objs}
 
-    for obj in objs:
-        paths = _find_object_collection_paths(scene, obj)
-        if not paths:
-            raise ValueError(f"Object '{obj.name}' is not in scene '{scene.name}'")
-
-        new_obj = action_copy_object(obj)
-        new_objs.append(new_obj)
-
-        for path in paths:
-            parent_col = path[-1]  # TODO maybe should be manifest?
-
-            # If object in scene collection fix here and don't loop over ancestors
-            if parent_col is scene.collection:
-                scene.collection.objects.unlink(obj)
-                scene.collection.objects.link(new_obj)
-                continue
-
-            # Object in a collection. Replace immediate parent
-            current_old = parent_col
-            current_new = _shallow_duplicate_collection(parent_col, obj, new_obj)
-
-            # Replace all ancestors
-            for ancestor in reversed(path[1:-1]):
-                new_ancestor = bpy.data.collections.new(ancestor.name)
-                for o in ancestor.objects:
-                    new_ancestor.objects.link(o)
-                for c in ancestor.children:
-                    new_ancestor.children.link(current_new if c is current_old else c)
-                current_old = ancestor
-                current_new = new_ancestor
-
-            # Set ancestors in the scene collection (replaced parents all the way up)
-            scene.collection.children.unlink(path[1])
-            scene.collection.children.link(current_new)
+    _apply_manifest_to_scene(scene, manifest)
 
     sync_system_update(context, force=True)
-    return new_objs
+    return list(manifest.values())
