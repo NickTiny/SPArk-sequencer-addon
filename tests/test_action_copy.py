@@ -9,11 +9,10 @@ from utils import import_spa_sequencer_module
 import_spa_sequencer_module()
 
 from spa_sequencer.sequence.action_copy import (
-    action_copy_object,
+    _action_copy_object,
     action_copy_object_in_scene,
     action_copy_scene,
 )
-
 
 # LLM Generated Testes
 
@@ -49,7 +48,7 @@ class TestActionCopyObject:
         """Static object: linked duplicate, shared mesh data."""
         mesh = bpy.data.meshes.new("Mesh")
         obj = bpy.data.objects.new("Static", mesh)
-        copy = action_copy_object(obj)
+        copy = _action_copy_object(obj)
         assert copy is not obj
         assert copy.data is obj.data
 
@@ -57,7 +56,7 @@ class TestActionCopyObject:
         """Active action on copy must be a different ID than the original."""
         obj = _make_animated_object("AnimObj")
         original_action = obj.animation_data.action
-        copy = action_copy_object(obj)
+        copy = _action_copy_object(obj)
         assert copy.animation_data.action is not original_action
 
     def test_nla_strip_actions_are_independent(self):
@@ -70,7 +69,7 @@ class TestActionCopyObject:
         anim.action = None
 
         original_strip_action = strip.action
-        copy = action_copy_object(obj)
+        copy = _action_copy_object(obj)
         copy_strip_action = copy.animation_data.nla_tracks[0].strips[0].action
         assert copy_strip_action is not original_strip_action
 
