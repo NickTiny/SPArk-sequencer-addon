@@ -256,12 +256,14 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
         # TODO do we suffix new stuff with scene name?
         if self.mode == "ACTION_COPY":
             try:
-                new_scene = action_copy_scene(context, ref_scene, self.setup_name)
+                new_scene, ac_manifest = action_copy_scene(
+                    context, ref_scene, self.setup_name
+                )
             except ValueError as e:
                 self.report({"ERROR"}, str(e))
                 return {"CANCELLED"}
             if new_scene.camera:
-                strip.scene_camera = new_scene.camera
+                strip.scene_camera = ac_manifest.get(strip.scene_camera)
             new_scene.parent_scene = ref_scene
         else:
             if camera and self.mode == "FULL_COPY":
@@ -363,12 +365,12 @@ class SEQUENCE_OT_action_copy_object(bpy.types.Operator):
         scene = context.scene
 
         try:
-            new_objs = action_copy_object_in_scene(context, scene, objs)
+            ac_manifest = action_copy_object_in_scene(context, scene, objs)
         except ValueError as e:
             self.report({"ERROR"}, str(e))
             return {"CANCELLED"}
 
-        self.report({"INFO"}, f"Action copied {len(new_objs)} object(s)")
+        self.report({"INFO"}, f"Action copied {len(ac_manifest)} object(s)")
         return {"FINISHED"}
 
 

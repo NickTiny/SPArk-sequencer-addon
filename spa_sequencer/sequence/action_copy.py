@@ -33,9 +33,10 @@ def _action_copy_object(obj: Object) -> Object:
 
 
 # Core Logic
-def _apply_action_copy(scene: Scene, objs: list[Object]) -> list[Object]:
+def _apply_action_copy(scene: Scene, objs: list[Object]) -> dict[Object, Object]:
     """Creates linked duplicates for every object in the list.
     Replaces ancestor collections, and updates scene camera.
+    Returns the manifest mapping original objects to new.
     """
     manifest: dict[Object, Object] = {obj: _action_copy_object(obj) for obj in objs}
 
@@ -61,30 +62,36 @@ def _apply_action_copy(scene: Scene, objs: list[Object]) -> list[Object]:
             scene.collection.objects.link(manifest[obj])
 
     scene.camera = manifest.get(scene.camera, scene.camera)
-    return list(manifest.values())
+    return manifest
 
 
 # Main Functions / Public API
-def action_copy_scene(context: Context, ref_scene: Scene, name: str) -> Scene:
+def action_copy_scene(
+    context: Context,
+    ref_scene: Scene,
+    name: str,
+) -> tuple[Scene, dict[Object, Object]]:
     """Replace all animated objects in a scene and ancestor collections."""
+
     with context.temp_override(scene=ref_scene):
         bpy.ops.scene.new(type='LINK_COPY')
 
     new_scene: Scene = context.scene
     new_scene.name = name
 
-    _apply_action_copy(
+    manifest = _apply_action_copy(
         new_scene,
         [obj for obj in new_scene.collection.all_objects if _obj_has_animation(obj)],
     )
+
     sync_system_update(context, force=True)
-    return new_scene
+    return new_scene, manifest
 
 
 def action_copy_object_in_scene(
     context: Context, scene: Scene, objs: list[Object]
-) -> list[Object]:
+) -> dict[Object, Object]:
     """Replace selected objects in a scene and ancestor collections."""
-    new_objs = _apply_action_copy(scene, objs)
+    manifest = _apply_action_copy(scene, objs)
     sync_system_update(context, force=True)
-    return new_objs
+    return manifest
