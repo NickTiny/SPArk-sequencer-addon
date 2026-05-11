@@ -32,6 +32,8 @@ Duplicates thee active Scene Strip's target Scene. Indicated with a "Copy Icon" 
 - **Action Copy**: Creates a new scene, only animated objects are duplicated. Animated objects and actions are unique to this scene. Static objects, meshes and other Scene data are shared. All parents collections of any animated object will be duplicated.
 
 
+**Note** Action copies can be created on a per object basis by Right Clicking an object in the outliner and selecting "Action Copy Selected Objects".
+
 ### Scene Selector
 
 ![Sequence Viewport Panel Scene Selector](media/sequence_viewport_panel_scene_select.jpg)
