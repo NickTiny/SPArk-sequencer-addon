@@ -4,8 +4,7 @@
 import bpy
 
 from ..utils import register_classes, unregister_classes
-from .action_copy import (
-    action_copy_object_in_scene,
+from ..action_copy.core import (
     action_copy_scene,
 )
 from ..sync.core import (
@@ -346,34 +345,6 @@ class SEQUENCE_OT_strip_jump(bpy.types.Operator):
         return {"FINISHED"}
 
 
-# TODO feels like this doesn't belong in this module. Don't want cross module imports too much... hmmm
-# Then again sync is cross module import maybe it's fine?
-class SEQUENCE_OT_action_copy_object(bpy.types.Operator):
-    bl_idname = "sequence.action_copy_object"
-    bl_label = "Action Copy Object"
-    bl_options = {"UNDO"}
-
-    @classmethod
-    def poll(cls, context: bpy.types.Context):
-        if not context.selected_objects:
-            cls.poll_message_set("No selected objects")
-            return False
-        return True
-
-    def execute(self, context: bpy.types.Context):
-        objs = context.selected_objects
-        scene = context.scene
-
-        try:
-            ac_manifest = action_copy_object_in_scene(context, scene, objs)
-        except ValueError as e:
-            self.report({"ERROR"}, str(e))
-            return {"CANCELLED"}
-
-        self.report({"INFO"}, f"Action copied {len(ac_manifest)} object(s)")
-        return {"FINISHED"}
-
-
 classes = (
     SEQUENCE_OT_check_obj_users_scene,
     DOPESHEET_OT_sequence_navigate,
@@ -381,7 +352,6 @@ classes = (
     SEQUENCE_OT_active_shot_scene_set,
     SEQUENCE_OT_copy_scene_strip_setup,
     SEQUENCE_OT_strip_jump,
-    SEQUENCE_OT_action_copy_object,
 )
 
 

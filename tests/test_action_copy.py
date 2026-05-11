@@ -8,7 +8,7 @@ from utils import import_spa_sequencer_module
 
 import_spa_sequencer_module()
 
-from spa_sequencer.sequence.action_copy import (
+from spa_sequencer.action_copy.core import (
     _action_copy_object,
     action_copy_object_in_scene,
     action_copy_scene,

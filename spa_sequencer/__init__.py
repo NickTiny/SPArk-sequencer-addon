@@ -2,6 +2,7 @@
 # Copyright (C) 2023, The SPA Studios. All rights reserved.
 
 from . import (
+    action_copy,
     editorial,
     keymaps,
     preferences,
@@ -17,6 +18,7 @@ packages = (
     sync,
     shot,
     sequence,
+    action_copy,
     render,
     editorial,
     shared_folders,

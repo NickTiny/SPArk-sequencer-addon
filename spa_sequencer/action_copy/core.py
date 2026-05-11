@@ -5,7 +5,6 @@ from bpy.types import Object, Collection, Scene, Context
 
 from ..sync.core import sync_system_update
 
-
 # Helpers
 def _obj_has_animation(obj: Object) -> bool:
     """Return True if object is animated"""
