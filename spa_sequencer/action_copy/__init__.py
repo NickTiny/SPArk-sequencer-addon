@@ -3,12 +3,15 @@
 
 from . import (
     ops,
+    ui,
 )
 
 
 def register():
     ops.register()
+    ui.register()
 
 
 def unregister():
     ops.unregister()
+    ui.unregister()
