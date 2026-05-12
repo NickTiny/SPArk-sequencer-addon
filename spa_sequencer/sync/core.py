@@ -7,7 +7,6 @@ import ctypes
 
 import bpy
 
-from ..utils import is_grease_pencil_instance
 from ..utils import register_classes, unregister_classes
 
 
@@ -267,7 +266,7 @@ def scene_change_manager(context: bpy.types.Context):
             if key == "brush":
                 set_grease_pencil_brush(context, value)
                 continue
-                
+
             if getattr(obj, key, None) != value:
                 setattr(obj, key, value)
 
@@ -288,7 +287,9 @@ def scene_change_manager(context: bpy.types.Context):
         # Store the active GP material and mode if any
         gp_material = None
 
-        if context.active_object and is_grease_pencil_instance(context.active_object.data):
+        if context.active_object and isinstance(
+            context.active_object.data, bpy.types.GreasePencil
+        ):
             gp_material = context.active_object.active_material
             sync_settings.last_gp_mode = context.active_object.mode
 
@@ -305,7 +306,9 @@ def scene_change_manager(context: bpy.types.Context):
 
         # If the new active object is a GP, restore the previously stored material
         # as active if also assigned.
-        if (gpencil := context.active_object) and is_grease_pencil_instance(gpencil.data):
+        if (gpencil := context.active_object) and isinstance(
+            gpencil.data, bpy.types.GreasePencil
+        ):
             if gp_material:
                 material_idx = gpencil.data.materials.find(gp_material.name)
                 if material_idx >= 0:

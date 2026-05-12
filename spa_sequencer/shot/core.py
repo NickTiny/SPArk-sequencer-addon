@@ -5,7 +5,6 @@ from typing import Callable, List
 
 import bpy
 
-from ..utils import is_grease_pencil_instance
 from ..preferences import get_addon_prefs
 from ..sync.core import (
     get_sync_settings,
@@ -214,7 +213,7 @@ def remap_relations(manifest: DuplicationManifest):
     def _remap_modifiers(new_object: bpy.types.Object):
         """Remap `new_object`'s modifiers properties."""
         _remap_pointer_properties(new_object.modifiers)
-        if is_grease_pencil_instance(new_object.data):
+        if isinstance(new_object.data, bpy.types.GreasePencil):
             _remap_pointer_properties(new_object.modifiers)
             _remap_pointer_properties(new_object.shader_effects)
 
@@ -784,4 +783,3 @@ def register():
 def unregister():
     del bpy.types.Strip.audition
     unregister_classes(classes)
-
