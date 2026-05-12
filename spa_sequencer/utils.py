@@ -111,11 +111,11 @@ def get_edit_scene(context: bpy.types.Context) -> bpy.types.Scene:
     Returns:
         bpy.types.Scene: The sequencer scene.
     """
-    if bpy.app.version >= (5, 0, 0) and context.sequencer_scene is not None:
+    if context.sequencer_scene:
         return context.sequencer_scene
     else:
         return context.scene
-    
+
 def is_grease_pencil_instance(data: bpy.types.ID) -> bool:
     """Check if data block is a Grease Pencil instance, compatible with new 5.0 API and legacy.
     https://developer.blender.org/docs/release_notes/5.0/python_api/#annotations-grease-pencil
@@ -126,5 +126,4 @@ def is_grease_pencil_instance(data: bpy.types.ID) -> bool:
     Returns:
         bool: True if data is a Grease Pencil instance, False otherwise.
     """
-    gp_data_type = bpy.types.GreasePencil if bpy.app.version >= (5, 0, 0) else bpy.types.GreasePencilv3
-    return isinstance(data, gp_data_type)
+    return isinstance(data, bpy.types.GreasePencil)
