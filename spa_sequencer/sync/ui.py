@@ -65,6 +65,7 @@ class SEQUENCER_PT_scene_properties(bpy.types.Panel):
 
         if not scene:
             layout.label(text="Master Scene not Set", icon="SCENE_DATA")
+            return
 
         rd = scene.render
 
