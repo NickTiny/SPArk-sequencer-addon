@@ -14,6 +14,7 @@ class SEQUENCER_PT_SyncPanel(bpy.types.Panel):
     bl_space_type = "SEQUENCE_EDITOR"
     bl_region_type = "UI"
     bl_category = "SPA.Sequencer"
+    bl_order = 1
 
     def draw(self, context):
         self.layout.use_property_split = True
@@ -36,6 +37,7 @@ class SEQUENCER_PT_SyncPanelAdvancedSettings(bpy.types.Panel):
     bl_space_type = "SEQUENCE_EDITOR"
     bl_region_type = "UI"
     bl_category = "SPA.Sequencer"
+    bl_order = 2
 
     def draw(self, context):
         settings = get_sync_settings()
@@ -46,9 +48,51 @@ class SEQUENCER_PT_SyncPanelAdvancedSettings(bpy.types.Panel):
         self.layout.prop(settings, "active_follows_playhead")
 
 
+class SEQUENCER_PT_scene_properties(bpy.types.Panel):
+    """Adjust the scene properties of the active Sync Scene."""
+
+    bl_label = "Scene Properties"
+    bl_space_type = "SEQUENCE_EDITOR"
+    bl_region_type = "UI"
+    bl_category = "SPA.Sequencer"
+    bl_order = 3
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        scene: bpy.types.Scene = get_sync_settings().master_scene
+
+        if not scene:
+            layout.label(text="Master Scene not Set", icon="SCENE_DATA")
+
+        rd = scene.render
+
+        layout.label(text=scene.name, icon="SCENE_DATA")
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(rd, "resolution_x", text="Resolution X")
+        col.prop(rd, "resolution_y", text="Y")
+        col.prop(rd, "resolution_percentage", text="%")
+
+        layout.separator()
+
+        col = layout.column(heading="Frame Rate")
+        bpy.types.RENDER_PT_format.draw_framerate(col, rd)
+
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(scene, "frame_start", text="Frame Start")
+        col.prop(scene, "frame_end", text="End")
+        col.prop(scene, "frame_step", text="Step")
+
+
 classes = (
     SEQUENCER_PT_SyncPanel,
     SEQUENCER_PT_SyncPanelAdvancedSettings,
+    SEQUENCER_PT_scene_properties,
 )
 
 
