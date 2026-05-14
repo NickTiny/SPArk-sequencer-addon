@@ -244,7 +244,7 @@ def duplicate_scene(
     scene: bpy.types.Scene,
     name: str,
     manifest: DuplicationManifest = None,
-) -> bpy.types.Scene:
+) -> tuple[bpy.types.Scene, DuplicationManifest]:
     """Duplicates `scene` as a new scene named `name`.
 
     :param context: The context
