@@ -28,3 +28,13 @@ Set the preview range of the Scene Strip's Scene to the current range of the act
 
 ### Active Follows Playhead
 Keep the current strip under the playhead as the active strip. This is useful when rapidly adjusting settings in the [strip properties editors](https://docs.blender.org/manual/en/latest/editors/properties_editor.html). For Metastrips, the inner scene strips will be set to active. 
+
+# Scene Properties
+
+`Sequencer > Side Panel > SPA.Sequencer`
+
+![Timeline Properties Panel](media/timeline_props_panel.jpg)
+
+
+This is a simplified version of the Scene Properties panel. This is for simple access for the Resolution, Frame Rate and Frame Range of the current Master Scene.
+
