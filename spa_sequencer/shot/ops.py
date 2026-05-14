@@ -23,7 +23,7 @@ from ..sync.core import (
     get_sync_settings,
     remap_frame_value,
 )
-from ..sequence.action_copy import action_copy_scene
+from ..action_copy.core import action_copy_scene
 from ..utils import get_edit_scene, register_classes, unregister_classes
 
 
