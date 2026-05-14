@@ -320,7 +320,7 @@ def duplicate_scene(
     for region3D, view_mode in region3D_view_mode.items():
         region3D.view_perspective = view_mode
 
-    return new_scene
+    return new_scene, manifest
 
 
 def rename_all_datablocks_from_collection(
@@ -784,4 +784,3 @@ def register():
 def unregister():
     del bpy.types.Strip.audition
     unregister_classes(classes)
-
