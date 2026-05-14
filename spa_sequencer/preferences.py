@@ -12,16 +12,7 @@ from .utils import register_classes, unregister_classes
 
 class SPASequencerAddonPreferences(bpy.types.AddonPreferences):
     bl_idname = __package__
-
-    shot_template_prefix: bpy.props.StringProperty(
-        name="Shot Template Prefix",
-        description="Scene name prefix that identifies Shot Templates",
-        default="TEMPLATE_SHOT",
-    )
-
-    def draw(self, context):
-        self.layout.prop(self, "shot_template_prefix")
-
+    # Empty for now but may be useful for future features
 
 def get_addon_prefs() -> SPASequencerAddonPreferences:
     """Get the Addon Preferences instance."""
