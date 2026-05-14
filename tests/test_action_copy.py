@@ -88,7 +88,7 @@ class TestActionCopyScene:
         scene.collection.children.link(col)
 
         collections_before = set(bpy.data.collections)
-        new_scene = action_copy_scene(bpy.context, scene, "CopyScene")
+        new_scene, manifest = action_copy_scene(bpy.context, scene, "CopyScene")
 
         # No new collections should have been created.
         new_collections = set(bpy.data.collections) - collections_before
@@ -105,7 +105,7 @@ class TestActionCopyScene:
         scene.collection.children.link(col)
 
         original_children = set(scene.collection.children.values())
-        new_scene = action_copy_scene(bpy.context, scene, "CopyScene")
+        new_scene, manifest = action_copy_scene(bpy.context, scene, "CopyScene")
 
         # Original collection is gone; exactly one new collection took its place.
         assert col not in new_scene.collection.children.values()
@@ -122,7 +122,7 @@ class TestActionCopyScene:
         scene.collection.children.link(col)
 
         original_children = set(scene.collection.children.values())
-        new_scene = action_copy_scene(bpy.context, scene, "CopyScene")
+        new_scene, manifest = action_copy_scene(bpy.context, scene, "CopyScene")
 
         # Find the replacement collection by set difference (name may be auto-incremented).
         new_col = next(c for c in new_scene.collection.children.values() if c not in original_children)
@@ -144,7 +144,7 @@ class TestActionCopyScene:
         scene.collection.children.link(anim_col)
         scene.collection.children.link(static_col)
 
-        new_scene = action_copy_scene(bpy.context, scene, "CopyScene")
+        new_scene, manifest = action_copy_scene(bpy.context, scene, "CopyScene")
 
         assert static_col in new_scene.collection.children.values()
 
@@ -159,7 +159,7 @@ class TestActionCopyScene:
         scene.collection.children.link(outer)
 
         original_children = set(scene.collection.children.values())
-        new_scene = action_copy_scene(bpy.context, scene, "CopyScene")
+        new_scene, manifest = action_copy_scene(bpy.context, scene, "CopyScene")
 
         # Outer replaced: find by set difference.
         assert outer not in new_scene.collection.children.values()
@@ -182,7 +182,7 @@ class TestActionCopyScene:
         scene.collection.children.link(col)
         scene.camera = cam_obj
 
-        new_scene = action_copy_scene(bpy.context, scene, "CopyScene")
+        new_scene, manifest = action_copy_scene(bpy.context, scene, "CopyScene")
 
         # Camera is animated: new scene must point at the copy, not the original.
         assert new_scene.camera is not cam_obj
@@ -198,7 +198,7 @@ class TestActionCopyScene:
         scene.collection.children.link(col)
         scene.camera = cam_obj
 
-        new_scene = action_copy_scene(bpy.context, scene, "CopyScene")
+        new_scene, manifest = action_copy_scene(bpy.context, scene, "CopyScene")
 
         assert new_scene.camera is cam_obj
 
@@ -214,10 +214,10 @@ class TestActionCopyObjectInScene:
         obj = _make_animated_object("Direct")
         scene.collection.objects.link(obj)
 
-        new_objs = action_copy_object_in_scene(bpy.context, scene, [obj])
+        manifest = action_copy_object_in_scene(bpy.context, scene, [obj])
 
         assert obj not in scene.collection.objects.values()
-        assert new_objs[0] in scene.collection.objects.values()
+        assert manifest[obj] in scene.collection.objects.values()
 
     def test_object_in_nested_collection_ancestors_replaced(self):
         """Ancestor collections up to the scene root are all replaced."""
@@ -284,8 +284,8 @@ class TestActionCopyObjectInScene:
         scene.collection.children.link(col_b)
 
         original_children = set(scene.collection.children.values())
-        new_objs = action_copy_object_in_scene(bpy.context, scene, [obj])
-        new_obj = new_objs[0]
+        manifest = action_copy_object_in_scene(bpy.context, scene, [obj])
+        new_obj = manifest[obj]
 
         # Both original collections are replaced; find the two new ones by set difference.
         new_children = set(scene.collection.children.values()) - original_children
@@ -302,6 +302,6 @@ class TestActionCopyObjectInScene:
         col.objects.link(obj)
         scene.collection.children.link(col)
 
-        new_objs = action_copy_object_in_scene(bpy.context, scene, [obj])
+        manifest = action_copy_object_in_scene(bpy.context, scene, [obj])
 
-        assert new_objs[0].animation_data.action is not original_action
+        assert manifest[obj].animation_data.action is not original_action
