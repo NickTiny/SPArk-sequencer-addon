@@ -8,11 +8,7 @@ import bpy
 from ..utils import register_classes, unregister_classes
 
 
-BLENDER_EEVEE = (
-    "BLENDER_EEVEE_NEXT"
-    if (4, 2, 0) < bpy.app.version < (5, 0, 0)
-    else "BLENDER_EEVEE"
-)
+BLENDER_EEVEE = "BLENDER_EEVEE"
 
 MEDIA_TYPES_FORMATS = {
     "IMAGES": ("JPEG", "jpg"),

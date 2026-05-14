@@ -220,8 +220,7 @@ class StripRenderTask(BaseRenderTask):
             # Filepath: add separator between resolved name and auto frame number suffix
             filepath += "."
             # Setup render settings
-            if bpy.app.version >= (5, 0, 0):
-                self.overrides.set(render.image_settings, "media_type", "IMAGE")
+            self.overrides.set(render.image_settings, "media_type", "IMAGE")
             self.overrides.set(render.image_settings, "file_format", file_format)
             self.overrides.set(render.image_settings, "quality", 100)
             self.overrides.set(render.image_settings, "color_mode", "RGB")
@@ -229,8 +228,7 @@ class StripRenderTask(BaseRenderTask):
             # Filepath: add extension to avoid auto frame range suffix
             filepath += f".{file_ext}"
             # Setup render settings
-            if bpy.app.version >= (5, 0, 0):
-                self.overrides.set(render.image_settings, "media_type", "VIDEO")
+            self.overrides.set(render.image_settings, "media_type", "VIDEO")
             self.overrides.set(render.image_settings, "file_format", "FFMPEG")
             self.overrides.set(render.ffmpeg, "format", file_format)
             self.overrides.set(render.ffmpeg, "constant_rate_factor", "PERC_LOSSLESS")
@@ -288,7 +286,7 @@ class StripRenderTask(BaseRenderTask):
                 self.output_channel_offset,
                 render_options,
             )
-            
+
     def create_image_media_strip(self, sed: bpy.types.SequenceEditor, scene_strip: bpy.types.SceneStrip, channel_offset: int):
         # Create a image strip that only contains first frame
         frame_number = scene_strip.scene.frame_start 
@@ -299,16 +297,16 @@ class StripRenderTask(BaseRenderTask):
             channel=scene_strip.channel + channel_offset,
             frame_start=scene_strip.left_handle,
         )
-               
+
         if scene_strip.duration <= 1:
             return strip
-               
+
         # First frame already include start from second frame
         for idx in range(1, scene_strip.duration):
             frame_number = scene_strip.scene.frame_start + idx 
             img_path = scene_strip.scene.render.frame_path(frame=frame_number)
             strip.elements.append(os.path.basename(bpy.path.abspath(img_path)))
-            
+
         return strip
 
     def create_output_media_strip(
