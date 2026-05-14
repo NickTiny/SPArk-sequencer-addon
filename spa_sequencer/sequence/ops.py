@@ -4,6 +4,9 @@
 import bpy
 
 from ..utils import register_classes, unregister_classes
+from ..action_copy.core import (
+    action_copy_scene,
+)
 from ..sync.core import (
     get_sync_master_strip,
     get_sync_settings,
@@ -219,6 +222,11 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
                 "Linked Copy",
                 "Create a linked copy of the current scene, creating an 'Child Scene' (adds new collection)",
             ),
+            (
+                "ACTION_COPY",
+                "Action Copy",
+                "Created linked duplicates of animated objects (sharing mesh data), and keep links to all static objects/collections.",
+            ),  # TODO maybe this description could be improved? Perhaps details are better stored in documentation
         ),
     )  # type: ignore
 
@@ -243,30 +251,44 @@ class SEQUENCE_OT_copy_scene_strip_setup(bpy.types.Operator):
         ref_scene = strip.scene
         camera = strip.scene_camera
 
-        if camera and self.mode == "FULL_COPY":
-            camera["temp_scene_strip"] = strip.name
+        # TODO this might be too many if else conditionals for my liking....
+        # TODO do we suffix new stuff with scene name?
+        if self.mode == "ACTION_COPY":
+            try:
+                new_scene, ac_manifest = action_copy_scene(
+                    context, ref_scene, self.setup_name
+                )
+            except ValueError as e:
+                self.report({"ERROR"}, str(e))
+                return {"CANCELLED"}
+            if new_scene.camera:
+                strip.scene_camera = ac_manifest.get(strip.scene_camera)
+            new_scene.parent_scene = ref_scene
+        else:
+            if camera and self.mode == "FULL_COPY":
+                camera["temp_scene_strip"] = strip.name
 
-        # Create new Scene and set name
-        with context.temp_override(scene=ref_scene):
-            bpy.ops.scene.new(type=self.mode)
-        new_scene = context.scene
-        new_scene.name = self.setup_name
-        # create pointer back to old scene
-        new_scene.parent_scene = ref_scene
+            # Create new Scene and set name
+            with context.temp_override(scene=ref_scene):
+                bpy.ops.scene.new(type=self.mode)
+            new_scene = context.scene
+            new_scene.name = self.setup_name
+            # create pointer back to old scene
+            new_scene.parent_scene = ref_scene
 
-        if self.mode == "LINK_COPY":
-            # Create new collection with the same name
-            new_setup_collection = bpy.data.collections.new(name=self.setup_name)
-            new_scene.collection.children.link(new_setup_collection)
+            if self.mode == "LINK_COPY":
+                # Create new collection with the same name
+                new_setup_collection = bpy.data.collections.new(name=self.setup_name)
+                new_scene.collection.children.link(new_setup_collection)
 
-        if self.mode == "FULL_COPY":
-            for obj in new_scene.objects:
-                if getattr(obj, '["temp_scene_strip"]', None) == strip.name:
-                    strip.scene_camera = obj
+            if self.mode == "FULL_COPY":
+                for obj in new_scene.objects:
+                    if getattr(obj, '["temp_scene_strip"]', None) == strip.name:
+                        strip.scene_camera = obj
 
-                    # Clear Property after finding duplicated camera
-                    del obj["temp_scene_strip"]
-                    del camera["temp_scene_strip"]
+                        # Clear Property after finding duplicated camera
+                        del obj["temp_scene_strip"]
+                        del camera["temp_scene_strip"]
 
         # Assign new scene to current strip
         strip.scene = new_scene

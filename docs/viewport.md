@@ -25,8 +25,14 @@ The Shot List contains a list of the active Scene Strips in your sequence. The A
 
 ![Sequence Viewport Panel Scene Duplicate](media/sequence_viewport_panel_scene_duplicate.jpg)
 
-Indicated with a "Copy Icon" next to the Scene Selector. This operator allows for either a **Full Copy** or **Linked Copy** of the current Scene to be assigned to the current Active Strip. When using **Linked Copy** a new collection unique to the new scene will be created, named after the Scene.
+Duplicates thee active Scene Strip's target Scene. Indicated with a "Copy Icon" next to the [Scene Selector](viewport.md#scene-selector). This operator has the following modes: 
 
+- **Full Copy**: Creates a full copy of all objects and data (meshes) into a new Scene. Objects, actions, meshes and other Scene data are not shared. See Blender's native [Scene Copy Operator](https://docs.blender.org/manual/en/latest/video_editing/edit/montage/editing.html#delete).
+- **Linked Copy**: Creates a new scene with the same objects and data (meshes) linked into the Scene. Objects, actions, meshes and other Scene data are shared. Additionally a new collection unique to the new scene will be created, named after the Scene.
+- **Action Copy**: Creates a new scene, only animated objects are duplicated. Animated objects and actions are unique to this scene. Static objects, meshes and other Scene data are shared. All parents collections of any animated object will be duplicated.
+
+
+**Note** Action copies can be created on a per object basis by Right Clicking an object in the outliner and selecting "Action Copy Selected Objects".
 
 ### Scene Selector
 
