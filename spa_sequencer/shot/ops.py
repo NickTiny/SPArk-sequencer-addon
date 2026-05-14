@@ -341,8 +341,8 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
             ),
             (
                 "KEEP_SCENE",
-                "Keep Current Timing",
-                "Place the duplicated shot on a new channel with the active strip's timing",
+                "Keep Current Scene",
+                "Use the active Scene Strip's target scene as the target of the duplicated strip",
             ),
         ),
         default="KEEP_SCENE",
