@@ -150,6 +150,20 @@ class BatchRenderOptions(bpy.types.PropertyGroup):
         options=set(),
     )
 
+    use_overwrite: bpy.props.BoolProperty(
+        name="Overwrite",
+        description="Overwrite existing render output files",
+        default=True,
+        options=set(),
+    )
+
+    use_placeholder: bpy.props.BoolProperty(
+        name="Use Placeholder",
+        description="Create placeholder files during rendering",
+        default=False,
+        options=set(),
+    )
+
     def register_callback(self, task_name: str, callback: Callable):
         """Register a post run callback for given task (task class name)."""
         # TODO: improve logic to ensure task exists
