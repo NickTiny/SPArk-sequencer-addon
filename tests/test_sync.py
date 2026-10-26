@@ -386,3 +386,13 @@ def test_strip_jump_previous(basic_synced_setup):
     
     edit_scene.frame_set(shot_strip_2.frame_final_start)
     assert edit_scene.sequence_editor.active_strip == shot_strip_2
+
+
+def test_remap_frame_value_content_trim(basic_synced_setup):
+    _, shot_strip = basic_synced_setup
+    shot_strip.content_trim_start = 10
+    # The first visible frame shows the scene frame after the trimmed ones.
+    assert (
+        remap_frame_value(shot_strip.frame_final_start, shot_strip)
+        == shot_strip.scene.frame_start + 10
+    )

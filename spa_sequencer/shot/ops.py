@@ -355,10 +355,14 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
 
         if not duplicate_scene:
             new_strip.scene_camera = strip.scene_camera
-            handle_offset = get_last_used_frame(strip_container.strips, shot_scene)
-            slip_shot_content(new_strip, handle_offset)
-        else:
-            new_strip.scene_camera = strip.scene.camera
+
+        # Adjust inner Scene Timing
+        if self.timing_mode == "APPEND_TIME":
+            strip_offset = get_last_used_frame(strips.strips, shot_scene)
+        else:  # Keep
+            strip_offset = strip.left_handle_offset + strip.content_trim_start
+
+        slip_shot_content(new_strip, strip_offset)
 
         return new_strip
 
