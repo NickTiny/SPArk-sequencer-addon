@@ -104,10 +104,14 @@ def strip_apply_handle_offsets(
     # channel to avoid overwrite - store this.
     auto_channel = strip.channel
     # 2. Apply strip "internal" offset.
-    strip.content_start -= left_handle_offset
+    strip.content_start = left_handle - left_handle_offset + strip.content_trim_start
     # 3. Restore "external" properties again.
-    strip.right_handle = final_frame_end
-    strip.left_handle = left_handle
+    if strip.left_handle > left_handle:
+        strip.left_handle = left_handle
+        strip.right_handle = final_frame_end
+    else:
+        strip.right_handle = final_frame_end
+        strip.left_handle = left_handle
     # 4. Counter any change of channel from 3.
     #    by resetting the auto channel from 1.
     if strip.channel != auto_channel:

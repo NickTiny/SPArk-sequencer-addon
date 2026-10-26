@@ -408,7 +408,7 @@ class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
 
         # Compute strip internal offset.
         # TODO: Test for the sign of this offset when importing in other software.
-        offset = strip.left_handle - strip.content_start
+        offset = strip.left_handle - strip.content_start + strip.content_trim_start
         clip = otio.schema.Clip(
             name=strip.name,
             source_range=otio.opentime.TimeRange(
@@ -421,7 +421,12 @@ class EXPORT_OT_otio(bpy.types.Operator, ExportHelper):
             media_filepath,
             available_range=TimeRange(
                 start_time=RationalTime(0, media_fps),
-                duration=RationalTime(strip.content_duration, media_fps),
+                duration=RationalTime(
+                    strip.content_duration
+                    + strip.content_trim_start
+                    + strip.content_trim_end,
+                    media_fps,
+                ),
             ),
         )
 
