@@ -566,9 +566,6 @@ def sync_system_update(context: bpy.types.Context, force: bool = False):
         if sync_settings.sync_all_windows
         else [context.window]
     ):
-        # If window's scene is explicitly set to master scene, don't update it.
-        if not bpy.app.background and window.scene == master_scene:
-            continue
         # Open strip's scene in window at the remapped frame
         if window.scene != strip.scene:
             # Use scene_change_manager to optionnaly keep tool settings between scenes
