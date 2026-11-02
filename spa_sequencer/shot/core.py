@@ -649,7 +649,7 @@ def get_valid_shot_scenes() -> list[bpy.types.Scene]:
         for scene in bpy.data.scenes
         if (
             # Discard template scenes.
-            not scene.name.startswith(prefs.shot_template_prefix)
+            not scene.asset_data is not None
             # Discard master sync scene.
             and scene != get_sync_settings().master_scene
             # Discard empty scenes.
@@ -784,4 +784,3 @@ def register():
 def unregister():
     del bpy.types.Strip.audition
     unregister_classes(classes)
-

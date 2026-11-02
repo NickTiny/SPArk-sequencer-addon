@@ -93,8 +93,6 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
 
     def get_template_scenes(self, context):
         """Get the scenes matching template naming rule defined in preferences."""
-        prefs = get_addon_prefs()
-        prefix = prefs.shot_template_prefix
 
         shot_scenes = get_valid_shot_scenes()
 
@@ -105,7 +103,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
                     return scene in shot_scenes
                 case "TEMPLATE":
                     # Only show template scenes in this case.
-                    return scene.name.startswith(prefix)
+                    return scene.asset_data is not None
                 case "NEW":
                     # No need for source scene in NEW mode
                     return False
@@ -132,8 +130,8 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         description="Shot creation mode",
         items=(
             ("EXISTING", "Use Existing", "Use existing scene"),
-            ("TEMPLATE", "New From Template", "Create a new scene from a template"),
-            ("NEW", "New", "Create a new empty scene"),
+            ("TEMPLATE", "New From Asset", "New scene from a scene 'template' asset"),
+            ("NEW", "Blank", "Create a new empty scene"),
         ),
         default="EXISTING",
         update=update_default_source_scene,
@@ -186,7 +184,7 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
 
     def invoke(self, context: bpy.types.Context, _event):
         edit_scene = get_edit_scene(context)
-        
+
         if not (sed := edit_scene.sequence_editor):
             self.name = shot_naming.default_shot_name()
         else:
@@ -259,11 +257,11 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
         elif self.scene_mode == "NEW":
             # Create a new empty scene
             shot_scene = bpy.data.scenes.new(self.name)
-            
+
             # Set scene's frame range
             shot_scene.frame_start = 1
             shot_scene.frame_end = shot_scene.frame_start + self.duration - 1
-            
+
             # Create a camera for the new scene
             for i in range(1, 100000):
                 camera_name = f"Camera_{i:03d}"
@@ -273,11 +271,11 @@ class SEQUENCER_OT_shot_new(bpy.types.Operator):
             camera_obj = bpy.data.objects.new(name=camera_name, object_data=camera_data)
             shot_scene.collection.objects.link(camera_obj)
             shot_scene.camera = camera_obj
-            
+
             # Set a position for new camera
             camera_obj.location = (0, -10, 2)
             camera_obj.rotation_euler = (1.5708, 0, 0)  # 90 degrees on X axis
-            
+
             left_handle_offset = 0  # No offset for a new scene
         else:
             # Duplicate source scene.
