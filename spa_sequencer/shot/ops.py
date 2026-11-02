@@ -15,7 +15,7 @@ from .core import (
     new_audition_strip,
     get_audition_strip,
     set_active_audition,
-    get_strip_container,
+    get_strip_container
 )
 from .naming import shot_naming, ShotNamingProperty
 from ..sync.core import (
@@ -23,7 +23,6 @@ from ..sync.core import (
     get_sync_settings,
     remap_frame_value,
 )
-from ..action_copy.core import action_copy_scene
 from ..utils import get_edit_scene, register_classes, unregister_classes
 
 
@@ -320,119 +319,46 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
     bl_description = "Duplicate selected shot(s) and append them to the timeline"
     bl_options = {"UNDO"}
 
-    scene_mode: bpy.props.EnumProperty(  # type: ignore
-        name="Scene Mode",
-        description="If/how to duplicate the underlying Scene",
-        items=(
-            (
-                "FULL_COPY",  # TODO debug when running this twice in a row no duplicate is made?
-                "Full Copy",
-                "Create a duplicate of the current Scene and all referenced datablocks.",
-            ),
-            (
-                "LINK_COPY",
-                "Linked Copy",
-                "Create a duplicate of the current Scene sharing the datablocks of the current Scene.",
-            ),
-            (
-                "ACTION_COPY",
-                "Action Copy",
-                "Created linked duplicates of animated objects (sharing mesh data), and keep links to all static objects/collections.",
-            ),
-            (
-                "KEEP_SCENE",
-                "Keep Current Scene",
-                "Use the active Scene Strip's target scene as the target of the duplicated strip",
-            ),
-        ),
-        default="KEEP_SCENE",
-    )
-
-    timing_mode: bpy.props.EnumProperty(  # type: ignore
-        name="Timing Mode",
-        description="How the timing (inner scene & sequence timeline) is determined",
-        items=(
-            (
-                "APPEND_TIME",
-                "Append to Timeline",
-                "Place the duplicated shot after the last strip on the timeline",
-            ),
-            (
-                "KEEP_TIME",
-                "Keep Current Timing",
-                "Place the duplicated shot on a new channel with the active strip's timing",
-            ),
-        ),
-        default="KEEP_TIME",
+    duplicate_scene: bpy.props.BoolProperty(
+        name="Duplicate Scene",
+        description="Whether to also duplicate the underlying Scene",
+        default=False,
+        options={"SKIP_SAVE"},
     )
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
         return bool(context.selected_strips)
 
-    def invoke(self, context: bpy.types.Context, event):
-        return context.window_manager.invoke_props_dialog(self)
-
-    def draw(self, layout):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.prop(self, "scene_mode")
-        layout.prop(self, "timing_mode")
-
-    def get_next_free_channel(
-        self,
-        strip_container: bpy.types.SequenceEditor | bpy.types.MetaStrip,
-        strip: bpy.types.Strip,
-    ) -> int:
-        """Find the next channel up that accommodates the strips range."""
-
-        occupied = {
-            s.channel for s in strip_container.strips
-            if s.left_handle < strip.right_handle and s.right_handle > strip.left_handle
-        }
-        return next(c for c in range(strip.channel + 1, 128) if c not in occupied)
-
+    @staticmethod
     def duplicate_shot(
-        self, context: bpy.types.Context, strip: bpy.types.SceneStrip, name: str
+        context: bpy.types.Context,
+        strip: bpy.types.SceneStrip,
+        name: str,
+        duplicate_scene: bool,
     ) -> bpy.types.SceneStrip:
-        strips = get_strip_container(strip.id_data.sequence_editor)
-
-        # Get the Scene
-        if self.scene_mode == "ACTION_COPY":
-            shot_scene, manifest = action_copy_scene(context, strip.scene, name)
-        elif self.scene_mode == "FULL_COPY":
-            shot_scene, manifest = duplicate_scene(context, strip.scene, name)
-        elif self.scene_mode == "LINK_COPY":
-            with context.temp_override(scene=strip.scene):
-                bpy.ops.scene.new(type="LINK_COPY")
-            shot_scene = context.scene
-            shot_scene.name = name
-        else:  # KEEP_SCENE
+        strip_container = get_strip_container(strip.id_data.sequence_editor)
+        if duplicate_scene:
+            shot_scene = duplicate_scene(context, strip.scene, name)
+        else:
             shot_scene = strip.scene
 
-        # Placement in Sequencer Timeline
-        if self.timing_mode == "APPEND_TIME":
-            insert_frame = get_last_sequence(strips.strips).right_handle
-            new_channel = strip.channel
-        else:  # KEEP
-            insert_frame = strip.left_handle
-            new_channel = self.get_next_free_channel(strips, strip)
+        # Find the frame where to insert the duplicated strip
+        insert_frame = get_last_sequence(strip_container.strips).right_handle
 
-        new_strip = strips.strips.new_scene(name, shot_scene, new_channel, insert_frame)
+        # Create new strip
+        new_strip = strip_container.strips.new_scene(
+            name, shot_scene, strip.channel, insert_frame
+        )
+
         new_strip.duration = strip.duration
 
-        if self.scene_mode in {"FULL_COPY", "ACTION_COPY"}:
-            new_strip.scene_camera = manifest.get(strip.scene_camera)
-        else:  # LINK_COPY, KEEP_SCENE
+        if not duplicate_scene:
             new_strip.scene_camera = strip.scene_camera
-
-        # Adjust inner Scene Timing
-        if self.timing_mode == "APPEND_TIME":
-            strip_offset = get_last_used_frame(strips.strips, shot_scene)
-        else:  # Keep
-            strip_offset = strip.left_handle_offset
-
-        slip_shot_content(new_strip, strip_offset)
+            handle_offset = get_last_used_frame(strip_container.strips, shot_scene)
+            slip_shot_content(new_strip, handle_offset)
+        else:
+            new_strip.scene_camera = strip.scene.camera
 
         return new_strip
 
@@ -444,7 +370,7 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
         new_strips = []
         for strip in get_selected_scene_sequences(strip_container.strips):
             name = shot_naming.next_shot_name_from_sequences(strip_container)
-            new_strip = self.duplicate_shot(context, strip, name)
+            new_strip = self.duplicate_shot(context, strip, name, self.duplicate_scene)
             new_strips.append(new_strip)
 
         if not new_strips:
@@ -460,7 +386,7 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
         sed.active_strip = new_strips[0]
         for strip in new_strips:
             strip.select = True
-
+            
         edit_scene = get_edit_scene(context)
 
         edit_scene.frame_end = max(

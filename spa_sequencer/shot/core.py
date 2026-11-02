@@ -244,7 +244,7 @@ def duplicate_scene(
     scene: bpy.types.Scene,
     name: str,
     manifest: DuplicationManifest = None,
-) -> tuple[bpy.types.Scene, DuplicationManifest]:
+) -> bpy.types.Scene:
     """Duplicates `scene` as a new scene named `name`.
 
     :param context: The context
@@ -320,7 +320,7 @@ def duplicate_scene(
     for region3D, view_mode in region3D_view_mode.items():
         region3D.view_perspective = view_mode
 
-    return new_scene, manifest
+    return new_scene
 
 
 def rename_all_datablocks_from_collection(
@@ -784,3 +784,4 @@ def register():
 def unregister():
     del bpy.types.Strip.audition
     unregister_classes(classes)
+
