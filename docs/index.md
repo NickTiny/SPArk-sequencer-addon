@@ -98,3 +98,11 @@ Use the Batch Render Panel in the Sequencer Area to Render your Scene Strips. Yo
 ![Usage Render](media/usage_render.jpg)
 
 See [Batch Render Panel](render.md#batch-render-panel) for more details.
+
+
+## Shortcuts
+A list of SPArk Sequencer specific shortcuts to improve your sequence workflow experience. 
+
+- `Shift+Spacebar` Play sequencer timeline from outside sequencer region
+- `PageUp/PageDown` Jump sequencer strips from outside sequencer region
+- `Ctrl + A` Switch active [audition strip](shot.md#audition-menu)
