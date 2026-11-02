@@ -219,7 +219,7 @@ class SEQUENCER_OT_edit_conform_shots_from_editorial(bpy.types.Operator):
             frame_end = int(
                 strip.get(
                     STRIP_PROP_SOURCE_FRAME_END,
-                    (frame_start + strip.content_duration - 1),
+                    (frame_start + strip.content_duration + strip.content_trim_start - 1),
                 )
             )
 
@@ -252,7 +252,9 @@ class SEQUENCER_OT_edit_conform_shots_from_editorial(bpy.types.Operator):
             # Adjust timing.
             shot_strip.duration = strip.duration
             shot_strip.left_handle = strip.left_handle
-            start_offset = frame_start + strip.left_handle_offset - 1
+            start_offset = (
+                frame_start + strip.left_handle_offset + strip.content_trim_start - 1
+            )
             slip_shot_content(shot_strip, start_offset)
 
             # Detect if shot is exceeding initial rendering range.

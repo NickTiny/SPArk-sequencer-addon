@@ -429,7 +429,7 @@ class SEQUENCER_OT_shot_duplicate(bpy.types.Operator):
         if self.timing_mode == "APPEND_TIME":
             strip_offset = get_last_used_frame(strips.strips, shot_scene)
         else:  # Keep
-            strip_offset = strip.left_handle_offset
+            strip_offset = strip.left_handle_offset + strip.content_trim_start
 
         slip_shot_content(new_strip, strip_offset)
 
