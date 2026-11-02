@@ -7,7 +7,6 @@ import ctypes
 
 import bpy
 
-from ..utils import is_grease_pencil_instance
 from ..utils import register_classes, unregister_classes
 
 
@@ -267,7 +266,7 @@ def scene_change_manager(context: bpy.types.Context):
             if key == "brush":
                 set_grease_pencil_brush(context, value)
                 continue
-                
+
             if getattr(obj, key, None) != value:
                 setattr(obj, key, value)
 
@@ -288,7 +287,9 @@ def scene_change_manager(context: bpy.types.Context):
         # Store the active GP material and mode if any
         gp_material = None
 
-        if context.active_object and is_grease_pencil_instance(context.active_object.data):
+        if context.active_object and isinstance(
+            context.active_object.data, bpy.types.GreasePencil
+        ):
             gp_material = context.active_object.active_material
             sync_settings.last_gp_mode = context.active_object.mode
 
@@ -305,7 +306,9 @@ def scene_change_manager(context: bpy.types.Context):
 
         # If the new active object is a GP, restore the previously stored material
         # as active if also assigned.
-        if (gpencil := context.active_object) and is_grease_pencil_instance(gpencil.data):
+        if (gpencil := context.active_object) and isinstance(
+            gpencil.data, bpy.types.GreasePencil
+        ):
             if gp_material:
                 material_idx = gpencil.data.materials.find(gp_material.name)
                 if material_idx >= 0:
@@ -438,17 +441,16 @@ def sync_system_update(context: bpy.types.Context, force: bool = False):
         or not master_scene.sequence_editor
     ):
         return
-    
+
     # Disable sync_scene_time in active workspaces.
-    if bpy.app.version >= (5, 0, 0):
-        for window in context.window_manager.windows:
-            window.workspace.use_scene_time_sync = False
+    for window in context.window_manager.windows:
+        window.workspace.use_scene_time_sync = False
 
     # In order to evaluate if the master scene's current frame has changed,
     # we current have to rely on a system that stores the last frame values
     # that triggered a change.
     # This is a temporary solution that will be replaced when the
-    # frame_change_post callback recieve the correct Scene.
+    # frame_change_post callback receive the correct Scene.
     master_time_changed = sync_settings.last_master_frame != master_scene.frame_current
     scene_time_changed = sync_settings.last_strip_scene_frame != win_scene.frame_current
 

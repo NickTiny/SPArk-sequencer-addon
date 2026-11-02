@@ -86,11 +86,7 @@ class IMPORT_OT_otio(bpy.types.Operator, ImportHelper):
             "channel": channel,
             "frame_start": frame_start,
         }
-        if bpy.app.version >= (5, 0, 0):
-            kwargs["length"] = duration
-        else:
-            # Older Blender versions expect `frame_end` instead of `length`.
-            kwargs["frame_end"] = frame_start + duration
+        kwargs["length"] = duration
 
         new_strip = self.seq_editor.strips.new_effect(**kwargs)
         # Indicate missing media reference.
