@@ -30,7 +30,7 @@ def test_scene_duplication_same_name():
 def test_scene_duplication():
     ref_scene = bpy.context.scene
     # Create a new scene named "SceneCopy"
-    new_scene = duplicate_scene(bpy.context, ref_scene, "SceneCopy")
+    new_scene, _ = duplicate_scene(bpy.context, ref_scene, "SceneCopy")
 
     # Check collection duplication
     assert len(new_scene.collection.children) == len(ref_scene.collection.children)
@@ -46,7 +46,7 @@ def test_scene_duplication():
     )
     new_scene.collection.objects.link(new_obj)
     # Create another scene from "SceneCopy"
-    new_scene2 = duplicate_scene(bpy.context, new_scene, "SceneCopy2")
+    new_scene2, _ = duplicate_scene(bpy.context, new_scene, "SceneCopy2")
     # Check that this last scene has been created from "SceneCopy"
     assert len(new_scene2.objects) == len(new_scene.objects) != len(ref_scene.objects)
     # Check datablack auto-renaming
@@ -61,7 +61,7 @@ def test_scene_duplication_animation_data():
     ref_obj.keyframe_insert(data_path="location", frame=1)
 
     # Duplicate the scene
-    new_scene = duplicate_scene(bpy.context, ref_scene, "SceneCopy")
+    new_scene, _ = duplicate_scene(bpy.context, ref_scene, "SceneCopy")
 
     # Ensure new scene's active object has animation data
     new_obj = new_scene.view_layers[0].objects.active
@@ -231,7 +231,7 @@ def test_scene_rename_invalid_name():
 def test_scene_delete_scene_duplicate():
     # Duplicate the default scene
     manifest = DuplicationManifest()
-    sceneA = duplicate_scene(bpy.context, bpy.context.scene, "SceneA", manifest)
+    sceneA, _ = duplicate_scene(bpy.context, bpy.context.scene, "SceneA", manifest)
 
     # Delete this new scene
     del_count = delete_scene(sceneA, True)
@@ -248,7 +248,7 @@ def test_scene_delete_scene_duplicate():
 def test_scene_delete_scene_duplicate_with_shared_collection():
     # Duplicate default scene
     manifest = DuplicationManifest()
-    sceneA = duplicate_scene(bpy.context, bpy.context.scene, "SceneA", manifest)
+    sceneA, _ = duplicate_scene(bpy.context, bpy.context.scene, "SceneA", manifest)
     # Link a collection from the default scene into the new scene
     shared_col = bpy.context.scene.collection.children[0]
     sceneA.collection.children.link(shared_col)
