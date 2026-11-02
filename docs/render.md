@@ -46,7 +46,22 @@ The outputs scene has several additional options:
 
     - **Filepath Pattern**: Define a custom file naming scheme for the Output Scene render file(s). Only available if **Render Output Scene** is available.
 
-    - **Use Default Color Management**: If enabled, temporarily override color management settings of output scene. `View Transform='Standard'` and `Look='None'` in the `sRGB` Color Space. Exposure, Gamma and Curve Mapping are also set to default values. CAUTION: If output scene uses AgX, Look value will not be restored to its original value. Only available if **Render Output Scene** is available.
+
+
+### + / New Output Scene: 
+![Batch Render Panel](media/batch_render_new_output.jpg)
+
+Operator to copy the current Master Scene's render settings and setup a new blank scene to use as the output Scene.
+
+- **Name**: The desired name of your output scene. If naming conflict is found Blender will add a .001 to the end of your scene's name.
+
+- **Use Default Color**: Default Color, is meant to replicate the color management settings of Blender's video editing template. When rendering the View Transform (AgX, Filmic, etc) is baked into the output .JPEG/MOV files. To properly represent renders in the Output the below color settings are used. If disabled the [Color Management](https://docs.blender.org/manual/en/4.0/render/color_management.html) will be copied from the [Master Scene](sync.md#master-scene).
+    - `Display Device = sRGB`
+    - `View Transform = Standard`
+    - `Look = None`
+    - `Exposure = 0.0`
+    - `Gamma = 1.0`
+    - `Curve Mapping = False`.
 
 
 ### Sequencer Batch Render Operator

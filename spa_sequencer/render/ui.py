@@ -24,7 +24,9 @@ class SEQUENCER_PT_batch_render(bpy.types.Panel):
         self.layout.prop(options, "filepath_pattern")
         self.layout.prop(options, "selection_only")
         box = self.layout.box()
-        box.prop(options, "output_scene")
+        row = box.row(align=True)
+        row.prop(options, "output_scene")
+        row.operator("sequencer.new_output_scene", text="", icon="ADD")
         if options.output_scene:
             col = box.column(align=True)
             col.prop(options, "output_auto_offset_channels")
@@ -32,7 +34,6 @@ class SEQUENCER_PT_batch_render(bpy.types.Panel):
             col.prop(options, "render_output_scene")
             if options.render_output_scene:
                 col.prop(options, "output_render_filepath_pattern")
-                col.prop(options, "output_set_color")
         self.layout.operator("sequencer.batch_render")
 
 
