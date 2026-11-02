@@ -166,7 +166,13 @@ def remap_frame_value(frame: int, scene_strip: bpy.types.SceneStrip) -> int:
     :param scene_strip: The scene strip to remap to.
     :returns: The remapped frame value
     """
-    return int(frame - scene_strip.content_start + scene_strip.scene.frame_start)
+    # Source frame = scene start + timeline offset from content start + trimmed frames.
+    return int(
+        frame
+        - scene_strip.content_start
+        + scene_strip.content_trim_start
+        + scene_strip.scene.frame_start
+    )
 
 
 def get_strips_at_frame(
